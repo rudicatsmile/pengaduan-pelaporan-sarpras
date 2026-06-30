@@ -17,4 +17,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/reports', [ReportController::class, 'store']);
     Route::get('/reports', [ReportController::class, 'index']);
     Route::get('/reports/{id}', [ReportController::class, 'show']);
+
+    Route::get('/tasks', [\App\Http\Controllers\Api\TaskController::class, 'index']);
+    Route::post('/tasks/{id}/process', [\App\Http\Controllers\Api\TaskController::class, 'process']);
+    Route::post('/tasks/{id}/resolve', [\App\Http\Controllers\Api\TaskController::class, 'resolve']);
 });

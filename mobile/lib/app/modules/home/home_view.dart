@@ -49,6 +49,14 @@ class HomeView extends GetView<HomeController> {
   }
 
   Widget _buildDashboard(BuildContext context) {
+    if (controller.isLoading.value) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (controller.userRole.value == 'petugas') {
+      return _buildPetugasDashboard(context);
+    }
+
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -72,6 +80,31 @@ class HomeView extends GetView<HomeController> {
                 title: const Text('Pelaporan Umum'),
                 subtitle: const Text('Lapor masalah tanpa QR Code'),
                 onTap: () => Get.toNamed('/report/general'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPetugasDashboard(BuildContext context) {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Tugas Anda', style: context.textTheme.headlineMedium),
+            const SizedBox(height: 10),
+            const Text('Daftar laporan yang didelegasikan kepada Anda'),
+            const SizedBox(height: 20),
+            Expanded(
+              child: Center(
+                child: ElevatedButton(
+                  onPressed: () => Get.toNamed('/task/list'),
+                  child: const Text('Lihat Daftar Tugas'),
+                ),
               ),
             ),
           ],

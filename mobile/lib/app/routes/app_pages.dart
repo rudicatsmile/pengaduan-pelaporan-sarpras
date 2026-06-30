@@ -15,6 +15,10 @@ import '../modules/report/general_report_binding.dart';
 import '../modules/report/general_report_view.dart';
 import '../modules/report/report_detail_binding.dart';
 import '../modules/report/report_detail_view.dart';
+import '../modules/task/task_list_binding.dart';
+import '../modules/task/task_list_view.dart';
+import '../modules/task/task_detail_binding.dart';
+import '../modules/task/task_detail_view.dart';
 
 part 'app_routes.dart';
 
@@ -61,6 +65,16 @@ class AppPages {
       name: '/report/detail',
       page: () => const ReportDetailView(),
       binding: ReportDetailBinding(),
+    ),
+    GetPage(
+      name: '/task/list',
+      page: () => const TaskListView(),
+      binding: TaskListBinding(),
+    ),
+    GetPage(
+      name: '/task/detail',
+      page: () => const TaskDetailView(),
+      binding: TaskDetailBinding(),
     ),
   ];
 }
