@@ -39,6 +39,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/reports/{id}', [\App\Http\Controllers\Admin\ReportController::class, 'show'])->name('reports.show');
     Route::post('/reports/{id}/verify', [\App\Http\Controllers\Admin\ReportController::class, 'verify'])->name('reports.verify');
     Route::post('/reports/{id}/delegate', [\App\Http\Controllers\Admin\ReportController::class, 'delegate'])->name('reports.delegate');
+
+    // Master Data Routes
+    Route::resource('rooms', \App\Http\Controllers\Admin\RoomController::class);
+    Route::get('rooms/{room}/qr', [\App\Http\Controllers\Admin\RoomController::class, 'generateQr'])->name('rooms.qr');
+    Route::resource('categories', \App\Http\Controllers\Admin\CategoryController::class);
+    Route::resource('users', \App\Http\Controllers\Admin\UserController::class);
 });
 
 require __DIR__.'/auth.php';

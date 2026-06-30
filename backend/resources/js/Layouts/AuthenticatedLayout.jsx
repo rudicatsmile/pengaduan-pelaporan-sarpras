@@ -36,6 +36,24 @@ export default function AuthenticatedLayout({ header, children }) {
                                 >
                                     Laporan
                                 </NavLink>
+                                <NavLink
+                                    href={route('rooms.index')}
+                                    active={route().current('rooms.*')}
+                                >
+                                    Master Ruangan
+                                </NavLink>
+                                <NavLink
+                                    href={route('categories.index')}
+                                    active={route().current('categories.*')}
+                                >
+                                    Master Kategori
+                                </NavLink>
+                                <NavLink
+                                    href={route('users.index')}
+                                    active={route().current('users.*')}
+                                >
+                                    Master User
+                                </NavLink>
                             </div>
                         </div>
 
