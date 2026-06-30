@@ -7,6 +7,7 @@ export default function Index({ users, roles }) {
     const { data, setData, post, put, delete: destroy, processing, reset, errors } = useForm({
         name: '',
         email: '',
+        phone: '',
         password: '',
         role: '',
     });
@@ -32,6 +33,7 @@ export default function Index({ users, roles }) {
         setData({
             name: user.name,
             email: user.email,
+            phone: user.phone || '',
             password: '', // blank password when editing
             role: user.roles?.length > 0 ? user.roles[0].name : '',
         });
@@ -82,6 +84,17 @@ export default function Index({ users, roles }) {
                                         required
                                     />
                                     {errors.email && <div className="text-red-500 text-sm mt-1">{errors.email}</div>}
+                                </div>
+                                <div className="mb-4">
+                                    <label className="block text-sm font-medium text-gray-700">No. WhatsApp</label>
+                                    <input
+                                        type="text"
+                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                        value={data.phone}
+                                        onChange={e => setData('phone', e.target.value)}
+                                        placeholder="08123456789"
+                                    />
+                                    {errors.phone && <div className="text-red-500 text-sm mt-1">{errors.phone}</div>}
                                 </div>
                                 <div className="mb-4">
                                     <label className="block text-sm font-medium text-gray-700">
@@ -142,7 +155,7 @@ export default function Index({ users, roles }) {
                                         <tr>
                                             <th className="border-b p-4">ID</th>
                                             <th className="border-b p-4">Nama</th>
-                                            <th className="border-b p-4">Email</th>
+                                            <th className="border-b p-4">Email / No. WA</th>
                                             <th className="border-b p-4">Role</th>
                                             <th className="border-b p-4">Aksi</th>
                                         </tr>
@@ -152,7 +165,10 @@ export default function Index({ users, roles }) {
                                             <tr key={user.id} className="hover:bg-gray-50">
                                                 <td className="border-b p-4">#{user.id}</td>
                                                 <td className="border-b p-4">{user.name}</td>
-                                                <td className="border-b p-4">{user.email}</td>
+                                                <td className="border-b p-4">
+                                                    <div>{user.email}</div>
+                                                    <div className="text-xs text-gray-500">{user.phone || '-'}</div>
+                                                </td>
                                                 <td className="border-b p-4">
                                                     {user.roles.map(r => (
                                                         <span key={r.id} className="bg-gray-200 text-gray-800 px-2 py-1 rounded text-xs mr-1 uppercase">

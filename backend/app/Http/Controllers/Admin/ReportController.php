@@ -64,6 +64,13 @@ class ReportController extends Controller
             'action' => 'Laporan didelegasikan ke ' . $petugas->name,
         ]);
 
+        if ($petugas->phone) {
+            \App\Services\WablasService::send(
+                $petugas->phone, 
+                "Halo {$petugas->name}, Anda mendapat delegasi tugas baru (Laporan ID: {$report->id}). Silakan cek aplikasi untuk detailnya."
+            );
+        }
+
         return redirect()->back()->with('success', 'Laporan berhasil didelegasikan');
     }
 }

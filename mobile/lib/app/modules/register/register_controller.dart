@@ -17,8 +17,8 @@ class RegisterController extends GetxController {
   ));
 
   Future<void> register() async {
-    if (nameController.text.isEmpty || emailController.text.isEmpty || passwordController.text.isEmpty) {
-      Get.snackbar('Error', 'Nama, Email, dan Password wajib diisi');
+    if (nameController.text.isEmpty || emailController.text.isEmpty || passwordController.text.isEmpty || phoneController.text.isEmpty) {
+      Get.snackbar('Error', 'Nama, Email, No WhatsApp, dan Password wajib diisi');
       return;
     }
 

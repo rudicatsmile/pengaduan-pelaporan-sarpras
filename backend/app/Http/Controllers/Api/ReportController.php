@@ -41,6 +41,13 @@ class ReportController extends Controller
                 'action' => 'Laporan dibuat',
             ]);
 
+            if ($request->user()->phone) {
+                \App\Services\WablasService::send(
+                    $request->user()->phone, 
+                    "Halo {$request->user()->name}, laporan Anda (ID: {$report->id}) berhasil diterima dan sedang menunggu verifikasi admin."
+                );
+            }
+
             // Upload attachments
             if ($request->hasFile('attachments')) {
                 foreach ($request->file('attachments') as $file) {

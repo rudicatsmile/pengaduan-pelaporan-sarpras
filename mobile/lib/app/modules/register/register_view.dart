@@ -61,7 +61,7 @@ class RegisterView extends GetView<RegisterController> {
                 controller: controller.phoneController,
                 keyboardType: TextInputType.phone,
                 decoration: InputDecoration(
-                  labelText: 'Nomor Telepon (Opsional)',
+                  labelText: 'Nomor WhatsApp (Wajib)',
                   prefixIcon: const Icon(Icons.phone),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),

@@ -24,7 +24,7 @@ class TaskController extends Controller
 
     public function process(Request $request, $id)
     {
-        $report = Report::where('id', $id)
+        $report = Report::with('user')->where('id', $id)
             ->where('assigned_to', $request->user()->id)
             ->first();
 
@@ -39,12 +39,19 @@ class TaskController extends Controller
             'action' => 'Petugas mulai memproses tugas',
         ]);
 
+        if ($report->user && $report->user->phone) {
+            \App\Services\WablasService::send(
+                $report->user->phone, 
+                "Halo {$report->user->name}, laporan Anda (ID: {$report->id}) saat ini sedang ditindaklanjuti/diproses oleh petugas."
+            );
+        }
+
         return response()->json(['message' => 'Status tugas diubah menjadi proses']);
     }
 
     public function resolve(Request $request, $id)
     {
-        $report = Report::where('id', $id)
+        $report = Report::with('user')->where('id', $id)
             ->where('assigned_to', $request->user()->id)
             ->first();
 
@@ -75,6 +82,13 @@ class TaskController extends Controller
                 'file_path' => asset('storage/' . $path),
                 'file_type' => 'image',
             ]);
+        }
+
+        if ($report->user && $report->user->phone) {
+            \App\Services\WablasService::send(
+                $report->user->phone, 
+                "Halo {$report->user->name}, laporan Anda (ID: {$report->id}) TELAH SELESAI diperbaiki. Terima kasih atas partisipasi Anda!"
+            );
         }
 
         return response()->json(['message' => 'Tugas berhasil diselesaikan']);

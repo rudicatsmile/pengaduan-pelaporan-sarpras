@@ -40,6 +40,10 @@ Route::middleware('auth')->group(function () {
     Route::post('/reports/{id}/verify', [\App\Http\Controllers\Admin\ReportController::class, 'verify'])->name('reports.verify');
     Route::post('/reports/{id}/delegate', [\App\Http\Controllers\Admin\ReportController::class, 'delegate'])->name('reports.delegate');
 
+    // Analytics Routes
+    Route::get('/analytics', [\App\Http\Controllers\Admin\AnalyticsController::class, 'index'])->name('analytics.index');
+    Route::get('/analytics/export', [\App\Http\Controllers\Admin\AnalyticsController::class, 'exportCsv'])->name('analytics.export');
+
     // Master Data Routes
     Route::resource('rooms', \App\Http\Controllers\Admin\RoomController::class);
     Route::get('rooms/{room}/qr', [\App\Http\Controllers\Admin\RoomController::class, 'generateQr'])->name('rooms.qr');

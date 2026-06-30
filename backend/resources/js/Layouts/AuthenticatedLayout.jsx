@@ -37,6 +37,12 @@ export default function AuthenticatedLayout({ header, children }) {
                                     Laporan
                                 </NavLink>
                                 <NavLink
+                                    href={route('analytics.index')}
+                                    active={route().current('analytics.*')}
+                                >
+                                    Analitik & Laporan
+                                </NavLink>
+                                <NavLink
                                     href={route('rooms.index')}
                                     active={route().current('rooms.*')}
                                 >
