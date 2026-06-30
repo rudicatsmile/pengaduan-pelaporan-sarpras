@@ -11,6 +11,10 @@ import '../modules/report/qr_scanner_binding.dart';
 import '../modules/report/qr_scanner_view.dart';
 import '../modules/report/report_form_binding.dart';
 import '../modules/report/report_form_view.dart';
+import '../modules/report/general_report_binding.dart';
+import '../modules/report/general_report_view.dart';
+import '../modules/report/report_detail_binding.dart';
+import '../modules/report/report_detail_view.dart';
 
 part 'app_routes.dart';
 
@@ -47,6 +51,16 @@ class AppPages {
       name: '/report/form',
       page: () => const ReportFormView(),
       binding: ReportFormBinding(),
+    ),
+    GetPage(
+      name: '/report/general',
+      page: () => const GeneralReportView(),
+      binding: GeneralReportBinding(),
+    ),
+    GetPage(
+      name: '/report/detail',
+      page: () => const ReportDetailView(),
+      binding: ReportDetailBinding(),
     ),
   ];
 }

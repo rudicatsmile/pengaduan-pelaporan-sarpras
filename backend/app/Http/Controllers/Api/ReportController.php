@@ -68,4 +68,34 @@ class ReportController extends Controller
             ], 500);
         }
     }
+
+    public function index(Request $request)
+    {
+        $reports = Report::with(['category', 'room'])
+            ->where('user_id', $request->user()->id)
+            ->latest()
+            ->get();
+            
+        return response()->json([
+            'message' => 'Berhasil mengambil daftar laporan',
+            'data' => $reports
+        ]);
+    }
+
+    public function show(Request $request, $id)
+    {
+        $report = Report::with(['category', 'room', 'attachments', 'activities'])
+            ->where('id', $id)
+            ->where('user_id', $request->user()->id)
+            ->first();
+
+        if (!$report) {
+            return response()->json(['message' => 'Laporan tidak ditemukan'], 404);
+        }
+
+        return response()->json([
+            'message' => 'Berhasil mengambil detail laporan',
+            'data' => $report
+        ]);
+    }
 }
