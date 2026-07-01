@@ -69,6 +69,7 @@ class ReportController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
+            \Illuminate\Support\Facades\Log::error('Report Submit Error: ' . $e->getMessage());
             return response()->json([
                 'message' => 'Gagal submit laporan',
                 'error' => $e->getMessage()
@@ -78,31 +79,141 @@ class ReportController extends Controller
 
     public function index(Request $request)
     {
-        $reports = Report::with(['category', 'room'])
-            ->where('user_id', $request->user()->id)
-            ->latest()
-            ->get();
-            
+        $user = $request->user();
+        $query = Report::with(['category', 'room'])->latest();
+
+        if ($user->hasRole('admin')) {
+            // Admin sees all
+        } elseif ($user->hasRole('petugas')) {
+            $query->where(function($q) use ($user) {
+                $q->where('user_id', $user->id)
+                  ->orWhere('assigned_to', $user->id);
+            });
+        } else {
+            $query->where('user_id', $user->id);
+        }
+
         return response()->json([
             'message' => 'Berhasil mengambil daftar laporan',
-            'data' => $reports
+            'data' => $query->get()
         ]);
     }
 
     public function show(Request $request, $id)
     {
-        $report = Report::with(['category', 'room', 'attachments', 'activities'])
-            ->where('id', $id)
-            ->where('user_id', $request->user()->id)
-            ->first();
+        $user = $request->user();
+        $query = Report::with(['category', 'room', 'attachments', 'activities'])->where('id', $id);
+
+        if ($user->hasRole('petugas')) {
+            $query->where(function($q) use ($user) {
+                $q->where('user_id', $user->id)
+                  ->orWhere('assigned_to', $user->id);
+            });
+        } elseif (!$user->hasRole('admin')) {
+            $query->where('user_id', $user->id);
+        }
+
+        $report = $query->first();
 
         if (!$report) {
-            return response()->json(['message' => 'Laporan tidak ditemukan'], 404);
+            return response()->json(['message' => 'Laporan tidak ditemukan atau Anda tidak memiliki akses'], 404);
         }
 
         return response()->json([
             'message' => 'Berhasil mengambil detail laporan',
             'data' => $report
         ]);
+    }
+
+    public function verify(Request $request, $id)
+    {
+        if (!$request->user()->hasRole('admin')) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $report = Report::findOrFail($id);
+        $report->update([
+            'status' => 'diverifikasi',
+            'verified_by' => $request->user()->id,
+            'verified_at' => now(),
+        ]);
+
+        $report->activities()->create([
+            'user_id' => $request->user()->id,
+            'action' => 'Laporan diverifikasi',
+        ]);
+
+        return response()->json(['message' => 'Laporan berhasil diverifikasi']);
+    }
+
+    public function delegate(Request $request, $id)
+    {
+        if (!$request->user()->hasRole('admin')) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $request->validate(['petugas_id' => 'required|exists:users,id']);
+
+        $report = Report::findOrFail($id);
+        $report->update([
+            'status' => 'didelegasikan',
+            'assigned_to' => $request->petugas_id,
+        ]);
+
+        $petugas = User::find($request->petugas_id);
+
+        $report->activities()->create([
+            'user_id' => $request->user()->id,
+            'action' => 'Laporan didelegasikan ke ' . $petugas->name,
+        ]);
+
+        if ($petugas->phone) {
+            \App\Services\WablasService::send(
+                $petugas->phone, 
+                "Halo {$petugas->name}, Anda mendapat delegasi tugas baru (Laporan ID: {$report->id}). Silakan cek aplikasi untuk detailnya."
+            );
+        }
+
+        return response()->json(['message' => 'Laporan berhasil didelegasikan']);
+    }
+
+    public function process(Request $request, $id)
+    {
+        $report = Report::findOrFail($id);
+        
+        if ($report->assigned_to !== $request->user()->id && !$request->user()->hasRole('admin')) {
+            return response()->json(['message' => 'Anda tidak berhak memproses laporan ini.'], 403);
+        }
+
+        $report->update(['status' => 'dalam_proses']);
+
+        $report->activities()->create([
+            'user_id' => $request->user()->id,
+            'action' => 'Petugas mulai mengerjakan perbaikan',
+        ]);
+
+        return response()->json(['message' => 'Status laporan diubah menjadi Dalam Proses']);
+    }
+
+    public function resolve(Request $request, $id)
+    {
+        $request->validate(['resolution_notes' => 'required|string']);
+        $report = Report::findOrFail($id);
+
+        if ($report->assigned_to !== $request->user()->id && !$request->user()->hasRole('admin')) {
+            return response()->json(['message' => 'Anda tidak berhak menyelesaikan laporan ini.'], 403);
+        }
+
+        $report->update([
+            'status' => 'selesai',
+            'resolved_at' => now(),
+        ]);
+
+        $report->activities()->create([
+            'user_id' => $request->user()->id,
+            'action' => 'Laporan diselesaikan: ' . $request->resolution_notes,
+        ]);
+
+        return response()->json(['message' => 'Laporan berhasil diselesaikan']);
     }
 }

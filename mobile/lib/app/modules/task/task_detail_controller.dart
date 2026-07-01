@@ -1,3 +1,4 @@
+import 'package:mobile/app/core/network/api_client.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:dio/dio.dart' as dio;
@@ -13,10 +14,7 @@ class TaskDetailController extends GetxController {
   final resolutionNotesController = TextEditingController();
   final selectedImage = Rxn<File>();
 
-  final dio.Dio _dio = dio.Dio(dio.BaseOptions(
-    baseUrl: 'http://10.0.2.2:8000/api',
-    headers: {'Accept': 'application/json'},
-  ));
+  final  _dio = ApiClient.instance;
 
   @override
   void onInit() {

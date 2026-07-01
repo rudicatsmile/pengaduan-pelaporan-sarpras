@@ -1,3 +1,4 @@
+import 'package:mobile/app/core/network/api_client.dart';
 import 'package:get/get.dart';
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -8,10 +9,7 @@ class HomeController extends GetxController {
   final userRole = ''.obs;
   final isLoading = true.obs;
 
-  final Dio _dio = Dio(BaseOptions(
-    baseUrl: 'http://10.0.2.2:8000/api',
-    headers: {'Accept': 'application/json'},
-  ));
+  final  _dio = ApiClient.instance;
 
   @override
   void onInit() {

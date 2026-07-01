@@ -53,7 +53,7 @@ class TaskDetailView extends GetView<TaskDetailController> {
                     itemCount: (data['attachments'] as List).length,
                     itemBuilder: (context, index) {
                       final att = data['attachments'][index];
-                      final url = att['file_path'].replaceAll('localhost', '10.0.2.2');
+                      final url = att['file_path'].replaceAll('localhost', '192.168.27.177');
                       return Padding(
                         padding: const EdgeInsets.only(right: 8.0),
                         child: Image.network(url, width: 200, fit: BoxFit.cover),

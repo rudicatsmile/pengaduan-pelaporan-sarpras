@@ -1,36 +1,127 @@
+import 'package:mobile/app/core/network/api_client.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 
 class GeneralReportController extends GetxController {
   final locationController = TextEditingController();
   final descriptionController = TextEditingController();
   final selectedCategoryId = 1.obs; // Default: Infrastruktur
-  final categories = <Map<String, dynamic>>[
-    {'id': 1, 'name': 'Infrastruktur'},
-    {'id': 2, 'name': 'Kebersihan'},
-    {'id': 3, 'name': 'Keamanan'},
-    {'id': 4, 'name': 'Lainnya'},
-  ].obs;
+  final categories = <Map<String, dynamic>>[].obs;
   
-  final selectedImage = Rxn<File>();
+  final selectedImages = <File>[].obs;
   final isLoading = false.obs;
 
-  final dio.Dio _dio = dio.Dio(dio.BaseOptions(
-    baseUrl: 'http://10.0.2.2:8000/api',
-    headers: {'Accept': 'application/json'},
-  ));
+  final  _dio = ApiClient.instance;
 
-  Future<void> pickImage() async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.camera);
-    
-    if (pickedFile != null) {
-      selectedImage.value = File(pickedFile.path);
+  @override
+  void onInit() {
+    super.onInit();
+    _fetchCategories();
+  }
+
+  Future<void> _fetchCategories() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token');
+      
+      final response = await _dio.get(
+        '/categories',
+        options: dio.Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+      
+      if (response.statusCode == 200) {
+        final List<dynamic> data = response.data['data'];
+        categories.value = data.map((e) => e as Map<String, dynamic>).toList();
+        if (categories.isNotEmpty) {
+          selectedCategoryId.value = categories.first['id'];
+        }
+      }
+    } catch (e) {
+      Get.snackbar('Error', 'Gagal memuat daftar kategori');
     }
+  }
+
+  void showImagePickerOptions(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.camera_alt),
+                title: const Text('Ambil dari Kamera'),
+                onTap: () {
+                  Get.back();
+                  _pickImage(ImageSource.camera);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_library),
+                title: const Text('Pilih dari Galeri'),
+                onTap: () {
+                  Get.back();
+                  _pickMultiImage();
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _pickImage(ImageSource source) async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: source);
+    if (pickedFile != null) {
+      final compressedFile = await _compressImage(File(pickedFile.path));
+      if (compressedFile != null) {
+        selectedImages.add(compressedFile);
+      }
+    }
+  }
+
+  Future<void> _pickMultiImage() async {
+    final picker = ImagePicker();
+    final pickedFiles = await picker.pickMultiImage();
+    if (pickedFiles.isNotEmpty) {
+      for (var picked in pickedFiles) {
+        final compressedFile = await _compressImage(File(picked.path));
+        if (compressedFile != null) {
+          selectedImages.add(compressedFile);
+        }
+      }
+    }
+  }
+
+  Future<File?> _compressImage(File file) async {
+    final lastIndex = file.absolute.path.lastIndexOf(RegExp(r'.jp'));
+    final splitted = file.absolute.path.substring(0, (lastIndex));
+    final outPath = "${splitted}_out${DateTime.now().millisecondsSinceEpoch}.jpg";
+    
+    final result = await FlutterImageCompress.compressAndGetFile(
+      file.absolute.path, 
+      outPath,
+      quality: 70,
+      minWidth: 1024,
+      minHeight: 1024,
+    );
+    
+    return result != null ? File(result.path) : null;
+  }
+
+  void removeImage(int index) {
+    selectedImages.removeAt(index);
   }
 
   Future<void> submitReport() async {
@@ -42,8 +133,8 @@ class GeneralReportController extends GetxController {
       Get.snackbar('Error', 'Deskripsi tidak boleh kosong');
       return;
     }
-    if (selectedImage.value == null) {
-      Get.snackbar('Error', 'Foto bukti wajib dilampirkan');
+    if (selectedImages.isEmpty) {
+      Get.snackbar('Error', 'Foto bukti wajib dilampirkan minimal 1');
       return;
     }
 
@@ -52,16 +143,21 @@ class GeneralReportController extends GetxController {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('auth_token');
 
-      final formData = dio.FormData.fromMap({
+      final Map<String, dynamic> formMap = {
         'type': 'pelaporan_umum',
         'location_text': locationController.text,
         'category_id': selectedCategoryId.value,
         'description': descriptionController.text,
-        'attachments[0]': await dio.MultipartFile.fromFile(
-          selectedImage.value!.path,
-          filename: 'issue_umum.jpg',
-        ),
-      });
+      };
+
+      for (int i = 0; i < selectedImages.length; i++) {
+        formMap['attachments[$i]'] = await dio.MultipartFile.fromFile(
+          selectedImages[i].path,
+          filename: 'issue_umum_$i.jpg',
+        );
+      }
+
+      final formData = dio.FormData.fromMap(formMap);
 
       final response = await _dio.post(
         '/reports',

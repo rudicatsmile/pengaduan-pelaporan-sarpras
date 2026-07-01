@@ -1,3 +1,4 @@
+import 'package:mobile/app/core/network/api_client.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:dio/dio.dart';
@@ -9,10 +10,7 @@ class LoginController extends GetxController {
   final passwordController = TextEditingController();
   final isLoading = false.obs;
 
-  final Dio _dio = Dio(BaseOptions(
-    baseUrl: 'http://10.0.2.2:8000/api', // Android Emulator localhost
-    headers: {'Accept': 'application/json'},
-  ));
+  final  _dio = ApiClient.instance;
 
   Future<void> login() async {
     if (emailController.text.isEmpty || passwordController.text.isEmpty) {
@@ -29,8 +27,17 @@ class LoginController extends GetxController {
 
       if (response.statusCode == 200) {
         final token = response.data['token'];
+        final userId = response.data['user']['id'];
+        final roles = response.data['roles'] as List<dynamic>;
+        
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('auth_token', token);
+        await prefs.setInt('user_id', userId);
+        if (roles.isNotEmpty) {
+          await prefs.setString('user_role', roles[0].toString());
+        } else {
+          await prefs.setString('user_role', 'pengguna');
+        }
 
         Get.offAllNamed(Routes.HOME);
       }

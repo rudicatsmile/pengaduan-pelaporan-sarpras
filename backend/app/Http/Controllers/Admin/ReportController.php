@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Http\Controllers\Controller;
 use App\Models\Report;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -72,5 +71,49 @@ class ReportController extends Controller
         }
 
         return redirect()->back()->with('success', 'Laporan berhasil didelegasikan');
+    }
+
+    public function process(Request $request, $id)
+    {
+        $report = Report::findOrFail($id);
+        
+        // Cek apakah user yang login adalah petugas yang ditugaskan
+        if ($report->assigned_to !== $request->user()->id && !$request->user()->hasRole('admin')) {
+            return redirect()->back()->with('error', 'Anda tidak berhak memproses laporan ini.');
+        }
+
+        $report->update([
+            'status' => 'dalam_proses',
+        ]);
+
+        $report->activities()->create([
+            'user_id' => $request->user()->id,
+            'action' => 'Petugas mulai mengerjakan perbaikan',
+        ]);
+
+        return redirect()->back()->with('success', 'Status laporan diubah menjadi Dalam Proses');
+    }
+
+    public function resolve(Request $request, $id)
+    {
+        $request->validate(['resolution_notes' => 'required|string']);
+
+        $report = Report::findOrFail($id);
+
+        if ($report->assigned_to !== $request->user()->id && !$request->user()->hasRole('admin')) {
+            return redirect()->back()->with('error', 'Anda tidak berhak menyelesaikan laporan ini.');
+        }
+
+        $report->update([
+            'status' => 'selesai',
+            'resolved_at' => now(),
+        ]);
+
+        $report->activities()->create([
+            'user_id' => $request->user()->id,
+            'action' => 'Laporan diselesaikan: ' . $request->resolution_notes,
+        ]);
+
+        return redirect()->back()->with('success', 'Laporan berhasil diselesaikan');
     }
 }

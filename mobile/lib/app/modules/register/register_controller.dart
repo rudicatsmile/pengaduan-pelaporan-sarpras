@@ -1,3 +1,4 @@
+import 'package:mobile/app/core/network/api_client.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:dio/dio.dart';
@@ -11,10 +12,7 @@ class RegisterController extends GetxController {
   final passwordController = TextEditingController();
   final isLoading = false.obs;
 
-  final Dio _dio = Dio(BaseOptions(
-    baseUrl: 'http://10.0.2.2:8000/api', // Android Emulator localhost
-    headers: {'Accept': 'application/json'},
-  ));
+  final  _dio = ApiClient.instance;
 
   Future<void> register() async {
     if (nameController.text.isEmpty || emailController.text.isEmpty || passwordController.text.isEmpty || phoneController.text.isEmpty) {

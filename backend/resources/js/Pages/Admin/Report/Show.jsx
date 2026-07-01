@@ -1,9 +1,16 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, router } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import { useState } from 'react';
+import Lightbox from "yet-another-react-lightbox";
+import "yet-another-react-lightbox/styles.css";
 
 export default function Show({ report, petugas }) {
+    const { auth } = usePage().props;
+    const currentUser = auth.user;
     const [selectedPetugas, setSelectedPetugas] = useState('');
+    const [lightboxOpen, setLightboxOpen] = useState(false);
+    const [lightboxIndex, setLightboxIndex] = useState(0);
+    const [resolutionNotes, setResolutionNotes] = useState('');
 
     const handleVerify = () => {
         if (confirm('Verifikasi laporan ini?')) {
@@ -16,6 +23,20 @@ export default function Show({ report, petugas }) {
         if (!selectedPetugas) return alert('Pilih petugas!');
         router.post(route('reports.delegate', report.id), {
             petugas_id: selectedPetugas
+        });
+    };
+
+    const handleProcess = () => {
+        if (confirm('Mulai kerjakan perbaikan ini?')) {
+            router.post(route('reports.process', report.id));
+        }
+    };
+
+    const handleResolve = (e) => {
+        e.preventDefault();
+        if (!resolutionNotes) return alert('Catatan penyelesaian wajib diisi!');
+        router.post(route('reports.resolve', report.id), {
+            resolution_notes: resolutionNotes
         });
     };
 
@@ -57,9 +78,18 @@ export default function Show({ report, petugas }) {
                         {report.attachments && report.attachments.length > 0 && (
                             <div className="bg-white shadow-sm sm:rounded-lg p-6">
                                 <h3 className="font-bold text-lg mb-4">Lampiran Foto</h3>
-                                <div className="grid grid-cols-2 gap-4">
-                                    {report.attachments.map(att => (
-                                        <img key={att.id} src={att.file_path} alt="Lampiran" className="rounded-lg w-full h-auto" />
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                                    {report.attachments.map((att, index) => (
+                                        <img 
+                                            key={att.id} 
+                                            src={att.file_path} 
+                                            alt="Lampiran" 
+                                            className="rounded-lg w-full h-32 object-cover cursor-pointer hover:opacity-80 transition-opacity" 
+                                            onClick={() => {
+                                                setLightboxIndex(index);
+                                                setLightboxOpen(true);
+                                            }}
+                                        />
                                     ))}
                                 </div>
                             </div>
@@ -82,7 +112,7 @@ export default function Show({ report, petugas }) {
                         <div className="bg-white shadow-sm sm:rounded-lg p-6">
                             <h3 className="font-bold text-lg mb-4">Aksi Admin</h3>
                             
-                            {report.status === 'menunggu' && (
+                            {report.status === 'baru' && (
                                 <button
                                     onClick={handleVerify}
                                     className="w-full bg-blue-600 text-white rounded-lg px-4 py-2 font-medium hover:bg-blue-700"
@@ -115,15 +145,70 @@ export default function Show({ report, petugas }) {
                                 </form>
                             )}
 
-                            {['didelegasikan', 'proses', 'selesai'].includes(report.status) && (
-                                <div className="p-4 bg-gray-50 rounded-lg text-center text-gray-600">
-                                    Tidak ada aksi tersedia untuk status saat ini.
+                            {report.status === 'didelegasikan' && (
+                                <>
+                                    {(currentUser.id === report.assigned_to || currentUser.roles?.[0]?.name === 'admin') ? (
+                                        <button
+                                            onClick={handleProcess}
+                                            className="w-full bg-orange-500 text-white rounded-lg px-4 py-2 font-medium hover:bg-orange-600"
+                                        >
+                                            Mulai Kerjakan
+                                        </button>
+                                    ) : (
+                                        <div className="p-4 bg-gray-50 rounded-lg text-center text-gray-600">
+                                            Menunggu petugas mulai mengerjakan.
+                                        </div>
+                                    )}
+                                </>
+                            )}
+
+                            {report.status === 'dalam_proses' && (
+                                <>
+                                    {(currentUser.id === report.assigned_to || currentUser.roles?.[0]?.name === 'admin') ? (
+                                        <form onSubmit={handleResolve} className="space-y-4">
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700">Catatan Penyelesaian</label>
+                                                <textarea
+                                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                                    rows="3"
+                                                    value={resolutionNotes}
+                                                    onChange={e => setResolutionNotes(e.target.value)}
+                                                    placeholder="Contoh: Lampu sudah diganti baru."
+                                                ></textarea>
+                                            </div>
+                                            <button
+                                                type="submit"
+                                                className="w-full bg-green-600 text-white rounded-lg px-4 py-2 font-medium hover:bg-green-700"
+                                            >
+                                                Selesaikan Laporan
+                                            </button>
+                                        </form>
+                                    ) : (
+                                        <div className="p-4 bg-gray-50 rounded-lg text-center text-gray-600">
+                                            Laporan sedang dikerjakan oleh petugas.
+                                        </div>
+                                    )}
+                                </>
+                            )}
+
+                            {report.status === 'selesai' && (
+                                <div className="p-4 bg-green-50 border border-green-200 rounded-lg text-center text-green-700 font-medium">
+                                    Laporan telah selesai ditangani.
                                 </div>
                             )}
                         </div>
                     </div>
                 </div>
             </div>
+
+            {report.attachments && report.attachments.length > 0 && (
+                <Lightbox
+                    open={lightboxOpen}
+                    close={() => setLightboxOpen(false)}
+                    index={lightboxIndex}
+                    slides={report.attachments.map(att => ({ src: att.file_path }))}
+                />
+            )}
         </AuthenticatedLayout>
     );
 }
