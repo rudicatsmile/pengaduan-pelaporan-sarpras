@@ -70,7 +70,7 @@ class TaskDetailView extends GetView<TaskDetailController> {
               if (data['status'] == 'didelegasikan')
                 ElevatedButton(
                   onPressed: controller.isProcessing.value ? null : controller.processTask,
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.indigo, foregroundColor: Colors.white),
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.teal, foregroundColor: Colors.white),
                   child: controller.isProcessing.value ? const CircularProgressIndicator(color: Colors.white) : const Text('Mulai Proses Tugas'),
                 )
               else if (data['status'] == 'proses')
@@ -148,8 +148,8 @@ class TaskDetailView extends GetView<TaskDetailController> {
 
   Color _getStatusColor(String status) {
     switch (status) {
-      case 'didelegasikan': return Colors.purple;
-      case 'proses': return Colors.indigo;
+      case 'didelegasikan': return Colors.teal[700]!;
+      case 'proses': return Colors.lightGreen;
       case 'selesai': return Colors.green;
       default: return Colors.black;
     }

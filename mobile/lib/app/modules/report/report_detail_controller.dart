@@ -18,9 +18,12 @@ class ReportDetailController extends GetxController {
   void onInit() {
     super.onInit();
     _loadUserRole();
-    final id = Get.parameters['id'];
+    final id = Get.parameters['id'] ?? Get.arguments?.toString();
     if (id != null) {
       fetchDetail(id);
+    } else {
+      isLoading.value = false;
+      Get.snackbar('Error', 'ID Laporan tidak ditemukan');
     }
   }
 

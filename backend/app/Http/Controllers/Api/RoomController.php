@@ -8,6 +8,24 @@ use Illuminate\Http\Request;
 
 class RoomController extends Controller
 {
+    public function index()
+    {
+        $rooms = Room::orderBy('name')->get();
+        return response()->json([
+            'message' => 'Daftar ruangan berhasil diambil',
+            'data' => $rooms
+        ]);
+    }
+
+    public function getByFloor($floorId)
+    {
+        $rooms = Room::where('floor_id', $floorId)->orderBy('name')->get();
+        return response()->json([
+            'message' => 'Data ruangan berhasil diambil',
+            'data' => $rooms
+        ]);
+    }
+
     public function show($code)
     {
         if (str_starts_with($code, 'ROOM:')) {

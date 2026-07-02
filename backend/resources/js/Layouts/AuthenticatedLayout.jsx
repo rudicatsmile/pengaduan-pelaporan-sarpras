@@ -43,6 +43,12 @@ export default function AuthenticatedLayout({ header, children }) {
                                     Analitik & Laporan
                                 </NavLink>
                                 <NavLink
+                                    href={route('inspections.index')}
+                                    active={route().current('inspections.*')}
+                                >
+                                    Inspeksi Sarpras
+                                </NavLink>
+                                <NavLink
                                     href={route('rooms.index')}
                                     active={route().current('rooms.*')}
                                 >
@@ -60,6 +66,14 @@ export default function AuthenticatedLayout({ header, children }) {
                                 >
                                     Master User
                                 </NavLink>
+                                {user.roles?.includes('super_admin') && (
+                                    <NavLink
+                                        href={route('settings.index')}
+                                        active={route().current('settings.*')}
+                                    >
+                                        Pengaturan
+                                    </NavLink>
+                                )}
                             </div>
                         </div>
 
@@ -164,6 +178,20 @@ export default function AuthenticatedLayout({ header, children }) {
                         >
                             Dashboard
                         </ResponsiveNavLink>
+                        <ResponsiveNavLink
+                            href={route('inspections.index')}
+                            active={route().current('inspections.*')}
+                        >
+                            Inspeksi Sarpras
+                        </ResponsiveNavLink>
+                        {user.roles?.includes('super_admin') && (
+                            <ResponsiveNavLink
+                                href={route('settings.index')}
+                                active={route().current('settings.*')}
+                            >
+                                Pengaturan
+                            </ResponsiveNavLink>
+                        )}
                     </div>
 
                     <div className="border-t border-gray-200 pb-1 pt-4">

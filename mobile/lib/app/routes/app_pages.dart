@@ -19,6 +19,8 @@ import '../modules/task/task_list_binding.dart';
 import '../modules/task/task_list_view.dart';
 import '../modules/task/task_detail_binding.dart';
 import '../modules/task/task_detail_view.dart';
+import '../modules/inspection/inspection_form_view.dart';
+import '../modules/inspection/inspection_detail_view.dart';
 
 part 'app_routes.dart';
 
@@ -72,9 +74,17 @@ class AppPages {
       binding: TaskListBinding(),
     ),
     GetPage(
-      name: '/task/detail',
+      name: Routes.TASK_DETAIL,
       page: () => const TaskDetailView(),
       binding: TaskDetailBinding(),
+    ),
+    GetPage(
+      name: Routes.INSPECTION_FORM,
+      page: () => const InspectionFormView(),
+    ),
+    GetPage(
+      name: Routes.INSPECTION_DETAIL,
+      page: () => const InspectionDetailView(),
     ),
   ];
 }

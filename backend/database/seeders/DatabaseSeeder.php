@@ -5,6 +5,8 @@ namespace Database\Seeders;
 use App\Models\User;
 use App\Models\Category;
 use App\Models\Room;
+use App\Models\Building;
+use App\Models\Floor;
 use App\Models\Report;
 use Spatie\Permission\Models\Role;
 use Illuminate\Database\Seeder;
@@ -18,17 +20,36 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        // 0. Setup Settings
+        $this->call([
+            SettingSeeder::class,
+        ]);
+
         // 1. Setup Roles
+        $roleSuperAdmin = Role::firstOrCreate(['name' => 'super_admin', 'guard_name' => 'web']);
         $roleAdmin = Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
+        $roleSupervisor = Role::firstOrCreate(['name' => 'supervisor', 'guard_name' => 'web']);
         $rolePetugas = Role::firstOrCreate(['name' => 'petugas', 'guard_name' => 'web']);
         $roleUser = Role::firstOrCreate(['name' => 'pengguna', 'guard_name' => 'web']);
 
         // 2. Setup Dummy Users
+        $superAdmin = User::firstOrCreate(
+            ['email' => 'superadmin@superadmin.com'],
+            ['name' => 'Sang Super Admin', 'password' => Hash::make('password'), 'phone' => '0800000000']
+        );
+        $superAdmin->assignRole($roleSuperAdmin);
+
         $admin = User::firstOrCreate(
             ['email' => 'admin@admin.com'],
-            ['name' => 'Super Admin', 'password' => Hash::make('password'), 'phone' => '0811111111']
+            ['name' => 'Admin Operasional', 'password' => Hash::make('password'), 'phone' => '0811111111']
         );
         $admin->assignRole($roleAdmin);
+
+        $supervisor = User::firstOrCreate(
+            ['email' => 'supervisor@supervisor.com'],
+            ['name' => 'Pak Supervisor', 'password' => Hash::make('password'), 'phone' => '0899999999']
+        );
+        $supervisor->assignRole($roleSupervisor);
 
         $petugas1 = User::firstOrCreate(
             ['email' => 'petugas@petugas.com'],
@@ -55,11 +76,20 @@ class DatabaseSeeder extends Seeder
         $katInfrastruktur = Category::firstOrCreate(['name' => 'Infrastruktur (Meja/Pintu)']);
         $katIT = Category::firstOrCreate(['name' => 'IT / Proyektor / Internet']);
 
-        // 4. Setup Rooms
-        $ruang1 = Room::firstOrCreate(['name' => 'Ruang Kelas A-101'], ['code' => 'R-101', 'building' => 'Gedung A', 'floor' => 1]);
-        $ruang2 = Room::firstOrCreate(['name' => 'Laboratorium Komputer 1'], ['code' => 'LAB-01', 'building' => 'Gedung B', 'floor' => 2]);
-        $ruang3 = Room::firstOrCreate(['name' => 'Aula Utama'], ['code' => 'AULA', 'building' => 'Gedung Rektorat', 'floor' => 1]);
-        $ruang4 = Room::firstOrCreate(['name' => 'Toilet Lantai 2'], ['code' => 'TLT-02', 'building' => 'Gedung B', 'floor' => 2]);
+        // 4. Setup Buildings, Floors, and Rooms
+        $gedungA = Building::firstOrCreate(['name' => 'Gedung A']);
+        $lantai1A = Floor::firstOrCreate(['building_id' => $gedungA->id, 'name' => 'Lantai 1']);
+        
+        $gedungB = Building::firstOrCreate(['name' => 'Gedung B']);
+        $lantai2B = Floor::firstOrCreate(['building_id' => $gedungB->id, 'name' => 'Lantai 2']);
+        
+        $gedungRektorat = Building::firstOrCreate(['name' => 'Gedung Rektorat']);
+        $lantai1R = Floor::firstOrCreate(['building_id' => $gedungRektorat->id, 'name' => 'Lantai 1']);
+
+        $ruang1 = Room::firstOrCreate(['name' => 'Ruang Kelas A-101'], ['code' => 'R-101', 'floor_id' => $lantai1A->id]);
+        $ruang2 = Room::firstOrCreate(['name' => 'Laboratorium Komputer 1'], ['code' => 'LAB-01', 'floor_id' => $lantai2B->id]);
+        $ruang3 = Room::firstOrCreate(['name' => 'Aula Utama'], ['code' => 'AULA', 'floor_id' => $lantai1R->id]);
+        $ruang4 = Room::firstOrCreate(['name' => 'Toilet Lantai 2'], ['code' => 'TLT-02', 'floor_id' => $lantai2B->id]);
 
         // 5. Setup Dummy Reports
         

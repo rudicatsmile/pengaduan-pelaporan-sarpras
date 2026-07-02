@@ -49,8 +49,8 @@ class TaskListView extends GetView<TaskListController> {
   Widget _buildStatusBadge(String status) {
     Color color;
     switch (status) {
-      case 'didelegasikan': color = Colors.purple; break;
-      case 'proses': color = Colors.indigo; break;
+      case 'didelegasikan': color = Colors.teal[700]!; break;
+      case 'proses': color = Colors.lightGreen; break;
       case 'selesai': color = Colors.green; break;
       default: color = Colors.grey; break;
     }

@@ -114,28 +114,28 @@ class ReportDetailView extends GetView<ReportDetailController> {
 
     Widget? actionWidget;
 
-    if (status == 'baru' && role == 'admin') {
+    if (status == 'baru' && ['admin', 'super_admin'].contains(role)) {
       actionWidget = ElevatedButton(
         onPressed: () => controller.verifyReport(),
-        style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
+        style: ElevatedButton.styleFrom(backgroundColor: Colors.teal),
         child: const Text('Verifikasi Laporan', style: TextStyle(color: Colors.white)),
       );
-    } else if (status == 'diverifikasi' && role == 'admin') {
+    } else if (status == 'diverifikasi' && ['admin', 'super_admin'].contains(role)) {
       actionWidget = ElevatedButton(
         onPressed: () => _showDelegateSheet(context),
-        style: ElevatedButton.styleFrom(backgroundColor: Colors.purple),
+        style: ElevatedButton.styleFrom(backgroundColor: Colors.teal[700]),
         child: const Text('Delegasikan', style: TextStyle(color: Colors.white)),
       );
     } else if (status == 'didelegasikan') {
-      if (userId == assignedTo || role == 'admin') {
+      if (userId == assignedTo || ['admin', 'super_admin'].contains(role)) {
         actionWidget = ElevatedButton(
           onPressed: () => controller.processReport(),
-          style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+          style: ElevatedButton.styleFrom(backgroundColor: Colors.lightGreen),
           child: const Text('Mulai Kerjakan', style: TextStyle(color: Colors.white)),
         );
       }
     } else if (status == 'dalam_proses') {
-      if (userId == assignedTo || role == 'admin') {
+      if (userId == assignedTo || ['admin', 'super_admin'].contains(role)) {
         actionWidget = ElevatedButton(
           onPressed: () => _showResolveDialog(context),
           style: ElevatedButton.styleFrom(backgroundColor: Colors.green),

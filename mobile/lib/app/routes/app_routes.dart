@@ -6,4 +6,10 @@ abstract class Routes {
   static const REGISTER = '/register';
   static const HOME = '/home';
   static const REPORT = '/report';
+  static const REPORT_DETAIL = '/report/detail';
+  static const TASK_LIST = '/task';
+  static const TASK_DETAIL = '/task/detail';
+  static const INSPECTION = '/inspection';
+  static const INSPECTION_FORM = '/inspection/form';
+  static const INSPECTION_DETAIL = '/inspection/detail';
 }

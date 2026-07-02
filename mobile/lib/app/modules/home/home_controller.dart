@@ -7,14 +7,31 @@ import '../../routes/app_pages.dart';
 class HomeController extends GetxController {
   final currentIndex = 0.obs;
   final userRole = ''.obs;
+  final userName = ''.obs;
   final isLoading = true.obs;
 
   final  _dio = ApiClient.instance;
+
+  final appName = 'Sistem Pelaporan'.obs;
 
   @override
   void onInit() {
     super.onInit();
     _fetchUser();
+    _fetchSettings();
+  }
+
+  Future<void> _fetchSettings() async {
+    try {
+      final response = await _dio.get('/settings');
+      if (response.statusCode == 200) {
+        if (response.data['app_name'] != null) {
+          appName.value = response.data['app_name'];
+        }
+      }
+    } catch (e) {
+      // print('Failed to fetch settings');
+    }
   }
 
   Future<void> _fetchUser() async {
@@ -29,6 +46,7 @@ class HomeController extends GetxController {
       );
       
       if (response.statusCode == 200) {
+        userName.value = response.data['user']['name'] ?? 'Pengguna';
         final roles = response.data['roles'] as List;
         if (roles.isNotEmpty) {
           userRole.value = roles[0];

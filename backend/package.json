@@ -22,6 +22,7 @@
         "vite": "^8.0.0"
     },
     "dependencies": {
+        "dayjs": "^1.11.21",
         "yet-another-react-lightbox": "^3.32.0"
     }
 }

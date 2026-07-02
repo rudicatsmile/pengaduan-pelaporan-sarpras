@@ -78,8 +78,8 @@ class ReportController extends Controller
         $report = Report::findOrFail($id);
         
         // Cek apakah user yang login adalah petugas yang ditugaskan
-        if ($report->assigned_to !== $request->user()->id && !$request->user()->hasRole('admin')) {
-            return redirect()->back()->with('error', 'Anda tidak berhak memproses laporan ini.');
+        if ($report->assigned_to !== $request->user()->id && !$request->user()->hasAnyRole(['admin', 'super_admin'])) {
+            return back()->with('error', 'Anda tidak berhak memproses laporan ini.');
         }
 
         $report->update([
@@ -100,8 +100,8 @@ class ReportController extends Controller
 
         $report = Report::findOrFail($id);
 
-        if ($report->assigned_to !== $request->user()->id && !$request->user()->hasRole('admin')) {
-            return redirect()->back()->with('error', 'Anda tidak berhak menyelesaikan laporan ini.');
+        if ($report->assigned_to !== $request->user()->id && !$request->user()->hasAnyRole(['admin', 'super_admin'])) {
+            return back()->with('error', 'Anda tidak berhak menyelesaikan laporan ini.');
         }
 
         $report->update([

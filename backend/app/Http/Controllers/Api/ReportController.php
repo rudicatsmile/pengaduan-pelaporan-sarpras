@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Report;
 use App\Models\ReportAttachment;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -82,8 +83,8 @@ class ReportController extends Controller
         $user = $request->user();
         $query = Report::with(['category', 'room'])->latest();
 
-        if ($user->hasRole('admin')) {
-            // Admin sees all
+        if ($user->hasAnyRole(['admin', 'super_admin', 'supervisor'])) {
+            // Admin, Super Admin, and Supervisor sees all
         } elseif ($user->hasRole('petugas')) {
             $query->where(function($q) use ($user) {
                 $q->where('user_id', $user->id)
@@ -95,7 +96,7 @@ class ReportController extends Controller
 
         return response()->json([
             'message' => 'Berhasil mengambil daftar laporan',
-            'data' => $query->get()
+            'data' => $query->paginate(10)
         ]);
     }
 
@@ -109,7 +110,7 @@ class ReportController extends Controller
                 $q->where('user_id', $user->id)
                   ->orWhere('assigned_to', $user->id);
             });
-        } elseif (!$user->hasRole('admin')) {
+        } elseif (!$user->hasAnyRole(['admin', 'super_admin', 'supervisor'])) {
             $query->where('user_id', $user->id);
         }
 
@@ -127,7 +128,7 @@ class ReportController extends Controller
 
     public function verify(Request $request, $id)
     {
-        if (!$request->user()->hasRole('admin')) {
+        if (!$request->user()->hasAnyRole(['admin', 'super_admin'])) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -148,7 +149,7 @@ class ReportController extends Controller
 
     public function delegate(Request $request, $id)
     {
-        if (!$request->user()->hasRole('admin')) {
+        if (!$request->user()->hasAnyRole(['admin', 'super_admin'])) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -181,7 +182,7 @@ class ReportController extends Controller
     {
         $report = Report::findOrFail($id);
         
-        if ($report->assigned_to !== $request->user()->id && !$request->user()->hasRole('admin')) {
+        if ($report->assigned_to !== $request->user()->id && !$request->user()->hasAnyRole(['admin', 'super_admin'])) {
             return response()->json(['message' => 'Anda tidak berhak memproses laporan ini.'], 403);
         }
 
@@ -200,7 +201,7 @@ class ReportController extends Controller
         $request->validate(['resolution_notes' => 'required|string']);
         $report = Report::findOrFail($id);
 
-        if ($report->assigned_to !== $request->user()->id && !$request->user()->hasRole('admin')) {
+        if ($report->assigned_to !== $request->user()->id && !$request->user()->hasAnyRole(['admin', 'super_admin'])) {
             return response()->json(['message' => 'Anda tidak berhak menyelesaikan laporan ini.'], 403);
         }
 

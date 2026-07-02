@@ -43,6 +43,9 @@ class UserController extends Controller
 
     public function update(Request $request, User $user)
     {
+        if ($user->hasRole('super_admin') && !auth()->user()->hasRole('super_admin')) {
+            return redirect()->back()->with('error', 'Anda tidak memiliki hak untuk mengubah Super Admin.');
+        }
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
@@ -67,6 +70,9 @@ class UserController extends Controller
 
     public function destroy(User $user)
     {
+        if ($user->hasRole('super_admin') && !auth()->user()->hasRole('super_admin')) {
+            return redirect()->back()->with('error', 'Anda tidak memiliki hak untuk menghapus Super Admin.');
+        }
         if ($user->hasRole('admin') && User::role('admin')->count() <= 1) {
             return redirect()->back()->with('error', 'Tidak dapat menghapus admin terakhir.');
         }

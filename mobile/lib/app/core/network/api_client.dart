@@ -1,6 +1,9 @@
 import 'package:mobile/app/core/network/api_client.dart';
 import 'package:dio/dio.dart';
 import 'package:logger/logger.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:get/get.dart';
+import 'package:mobile/app/routes/app_pages.dart';
 
 class ApiClient {
   static final Logger _logger = Logger(
@@ -32,10 +35,18 @@ class ApiClient {
               'DATA: ${response.data}');
           return handler.next(response);
         },
-        onError: (DioException e, handler) {
+        onError: (DioException e, handler) async {
           _logger.e('❌ ERROR [${e.response?.statusCode}] => PATH: ${e.requestOptions.path}\n'
               'MESSAGE: ${e.message}\n'
               'DATA: ${e.response?.data}');
+          
+          if (e.response?.statusCode == 401) {
+            final prefs = await SharedPreferences.getInstance();
+            await prefs.remove('auth_token');
+            if (Get.currentRoute != Routes.LOGIN) {
+              Get.offAllNamed(Routes.LOGIN);
+            }
+          }
           return handler.next(e);
         },
       ),

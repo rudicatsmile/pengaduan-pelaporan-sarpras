@@ -46,11 +46,18 @@ Route::middleware('auth')->group(function () {
     Route::get('/analytics', [\App\Http\Controllers\Admin\AnalyticsController::class, 'index'])->name('analytics.index');
     Route::get('/analytics/export', [\App\Http\Controllers\Admin\AnalyticsController::class, 'exportCsv'])->name('analytics.export');
 
+    // Inspection Routes
+    Route::get('/inspections', [\App\Http\Controllers\Admin\InspectionController::class, 'index'])->name('inspections.index');
+    Route::get('/inspections/{id}', [\App\Http\Controllers\Admin\InspectionController::class, 'show'])->name('inspections.show');
+
     // Master Data Routes
     Route::resource('rooms', \App\Http\Controllers\Admin\RoomController::class);
     Route::get('rooms/{room}/qr', [\App\Http\Controllers\Admin\RoomController::class, 'generateQr'])->name('rooms.qr');
     Route::resource('categories', \App\Http\Controllers\Admin\CategoryController::class);
     Route::resource('users', \App\Http\Controllers\Admin\UserController::class);
+    
+    Route::get('/settings', [\App\Http\Controllers\Admin\SettingController::class, 'index'])->name('settings.index');
+    Route::post('/settings', [\App\Http\Controllers\Admin\SettingController::class, 'update'])->name('settings.update');
 });
 
 require __DIR__.'/auth.php';
