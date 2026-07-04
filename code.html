@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+
+<html class="light" lang="id"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>CivicReport - Sistem Pelaporan Fasilitas Gedung</title>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Google Fonts: Plus Jakarta Sans & Material Symbols -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "error-container": "#ffdad6",
+                    "primary-fixed-dim": "#b8c4ff",
+                    "tertiary-fixed": "#dae2fd",
+                    "on-background": "#0b1c30",
+                    "error": "#ba1a1a",
+                    "on-secondary-container": "#6d5200",
+                    "secondary": "#785a00",
+                    "on-secondary": "#ffffff",
+                    "on-primary-fixed": "#001453",
+                    "surface-bright": "#f8f9ff",
+                    "on-tertiary-container": "#b4bbd5",
+                    "surface-container": "#e5eeff",
+                    "secondary-fixed": "#ffdf9a",
+                    "primary-fixed": "#dde1ff",
+                    "primary-container": "#1e40af",
+                    "background": "#f8f9ff",
+                    "on-tertiary-fixed-variant": "#3f465c",
+                    "tertiary": "#2d3449",
+                    "surface-variant": "#d3e4fe",
+                    "surface": "#f8f9ff",
+                    "surface-container-high": "#dce9ff",
+                    "on-secondary-fixed-variant": "#5a4300",
+                    "on-primary": "#ffffff",
+                    "primary": "#00288e",
+                    "on-surface": "#0b1c30",
+                    "surface-container-highest": "#d3e4fe",
+                    "outline-variant": "#c4c5d5",
+                    "tertiary-container": "#434b60",
+                    "surface-dim": "#cbdbf5",
+                    "on-secondary-fixed": "#251a00",
+                    "on-error-container": "#93000a",
+                    "inverse-primary": "#b8c4ff",
+                    "on-error": "#ffffff",
+                    "surface-tint": "#3755c3",
+                    "outline": "#757684",
+                    "tertiary-fixed-dim": "#bec6e0",
+                    "secondary-fixed-dim": "#f7be1d",
+                    "on-tertiary": "#ffffff",
+                    "surface-container-low": "#eff4ff",
+                    "inverse-surface": "#213145",
+                    "on-tertiary-fixed": "#131b2e",
+                    "inverse-on-surface": "#eaf1ff",
+                    "secondary-container": "#fdc425",
+                    "on-surface-variant": "#444653",
+                    "on-primary-fixed-variant": "#173bab",
+                    "on-primary-container": "#a8b8ff",
+                    "surface-container-lowest": "#ffffff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "margin-mobile": "16px",
+                    "container-max": "1200px",
+                    "base": "8px",
+                    "section-gap": "80px",
+                    "stack-md": "16px",
+                    "stack-lg": "32px",
+                    "gutter": "24px",
+                    "stack-sm": "8px"
+            },
+            "fontFamily": {
+                    "label-md": ["Plus Jakarta Sans"],
+                    "label-sm": ["Plus Jakarta Sans"],
+                    "display-lg": ["Plus Jakarta Sans"],
+                    "body-lg": ["Plus Jakarta Sans"],
+                    "display-lg-mobile": ["Plus Jakarta Sans"],
+                    "headline-sm": ["Plus Jakarta Sans"],
+                    "headline-md": ["Plus Jakarta Sans"],
+                    "body-md": ["Plus Jakarta Sans"]
+            },
+            "fontSize": {
+                    "label-md": ["14px", {"lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "label-sm": ["12px", {"lineHeight": "1", "fontWeight": "500"}],
+                    "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+                    "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "display-lg-mobile": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "800"}],
+                    "headline-sm": ["20px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                    "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #f8f9ff;
+            color: #0b1c30;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 24px;
+        }
+    </style>
+</head>
+<body class="overflow-x-hidden">
+<!-- TopNavBar -->
+<header class="bg-surface/80 backdrop-blur-md fixed top-0 w-full z-50 border-b border-outline-variant/30 shadow-sm h-16">
+<nav class="flex justify-between items-center h-full px-margin-mobile md:px-gutter max-w-container-max mx-auto">
+<div class="font-headline-md text-headline-md font-bold text-primary">CivicReport</div>
+<!-- Desktop Links -->
+<div class="hidden md:flex items-center gap-stack-lg">
+<a class="text-primary border-b-2 border-primary pb-1 font-label-md text-label-md transition-colors duration-200" href="#hero">Home</a>
+<a class="text-on-surface-variant font-label-md text-label-md hover:text-primary transition-colors duration-200" href="#features">Features</a>
+<a class="text-on-surface-variant font-label-md text-label-md hover:text-primary transition-colors duration-200" href="#how-it-works">How it Works</a>
+<a class="text-on-surface-variant font-label-md text-label-md hover:text-primary transition-colors duration-200" href="#download">Download</a>
+</div>
+<div class="flex items-center">
+<button class="bg-primary text-on-primary px-5 py-2 rounded-lg font-label-md text-label-md active:scale-95 transition-transform">Admin Login</button>
+</div>
+</nav>
+</header>
+<main class="pt-24 overflow-hidden">
+<!-- Hero Section -->
+<section class="relative px-margin-mobile md:px-gutter max-w-container-max mx-auto py-stack-lg md:py-24" id="hero">
+<div class="grid grid-cols-1 md:grid-cols-12 gap-gutter items-center">
+<div class="md:col-span-6 space-y-stack-md text-center md:text-left z-10">
+<div class="inline-flex items-center gap-2 px-3 py-1 bg-primary-container/10 text-primary rounded-full font-label-sm text-label-sm border border-primary/20">
+<span class="material-symbols-outlined text-[16px]">verified</span>
+<span>Sistem Pelaporan Terpadu</span>
+</div>
+<h1 class="font-display-lg-mobile md:font-display-lg text-display-lg-mobile md:text-display-lg text-on-background tracking-tight">
+                        Lapor Kerusakan Gedung <span class="text-primary">Lebih Cepat</span> &amp; Transparan
+                    </h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-xl">
+                        Sistem pengaduan sarana prasarana gedung yang terintegrasi. Bantu kami menjaga kenyamanan lingkungan kerja Anda dengan satu aplikasi.
+                    </p>
+<div class="flex flex-col sm:flex-row gap-4 pt-4 justify-center md:justify-start">
+<button class="bg-primary text-on-primary px-8 py-4 rounded-xl font-headline-sm flex items-center justify-center gap-2 shadow-lg shadow-primary/20 hover:bg-primary-container transition-all active:scale-95">
+<span class="material-symbols-outlined">download</span>
+                            Unduh Aplikasi
+                        </button>
+<button class="bg-surface-container-highest text-on-surface px-8 py-4 rounded-xl font-headline-sm border border-outline-variant flex items-center justify-center gap-2 hover:bg-surface-container-high transition-all active:scale-95">
+<span class="material-symbols-outlined">admin_panel_settings</span>
+                            Portal Admin
+                        </button>
+</div>
+</div>
+<div class="md:col-span-6 relative mt-12 md:mt-0">
+<div class="absolute -top-12 -right-12 w-64 h-64 bg-primary/5 rounded-full blur-3xl"></div>
+<div class="absolute -bottom-12 -left-12 w-64 h-64 bg-secondary-container/20 rounded-full blur-3xl"></div>
+<div class="relative rounded-3xl overflow-hidden shadow-2xl border border-white/40 transform md:rotate-2 hover:rotate-0 transition-transform duration-500">
+<img class="w-full h-auto object-cover aspect-[4/3]" data-alt="A medium shot of a modern professional in a clean, brightly lit corporate office corridor using a sleek smartphone. They are holding the phone up to photograph a malfunctioning HVAC ceiling vent which is slightly off-kilter. The image has a sharp, high-contrast look with professional blue and soft white lighting, emphasizing a trustworthy and tech-savvy civic reporting tool atmosphere." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCoI2MpuZ5YajQ9x__Z0s6jMPgQKmVYuzNfcGFAdNXbQQP7Y1EVX2kP4mOHL0g6KL5HRn5vBrdyIwEV3fq5CS9EzakIivSmG31rnhwsC7liyMMRhSFruu6cF2uH30b82PfnFjIWt_JIEmJBaeA6SLvd4wwWetaBT3Q1cuFtz7cuTqRy-egmFZw2ndtuR2pL6EcuVwLeMS8Khf0iuzeVa8RywQ6m-0P4Z6HDB25uA84kRP1f-QsGR0BOpj4XkXVi0QTSUqMZh09aVPQ"/>
+</div>
+<!-- Floating Stat Card -->
+<div class="absolute -bottom-6 -right-6 md:right-0 bg-white p-6 rounded-2xl shadow-xl border border-slate-100 flex items-center gap-4 animate-bounce hover:pause">
+<div class="bg-secondary-container p-3 rounded-full">
+<span class="material-symbols-outlined text-on-secondary-container">bolt</span>
+</div>
+<div>
+<div class="text-on-surface-variant font-label-sm">Respons Cepat</div>
+<div class="text-primary font-bold text-headline-sm"> &lt; 15 Menit</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- How it Works Section -->
+<section class="bg-white py-section-gap" id="how-it-works">
+<div class="px-margin-mobile md:px-gutter max-w-container-max mx-auto">
+<div class="text-center max-w-2xl mx-auto mb-16 space-y-4">
+<h2 class="font-headline-md text-headline-md md:text-[36px] text-on-background">Alur Kerja CivicReport</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Laporkan kerusakan hanya dalam hitungan detik. Tim teknisi kami akan segera menanggapi setiap laporan Anda.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-12 relative">
+<!-- Connector Line (Desktop) -->
+<div class="hidden md:block absolute top-1/2 left-1/4 right-1/4 h-0.5 bg-dashed border-t-2 border-dashed border-outline-variant/50 -translate-y-12 z-0"></div>
+<!-- Step 1 -->
+<div class="relative z-10 flex flex-col items-center text-center space-y-stack-md group">
+<div class="w-24 h-24 rounded-3xl bg-primary-container text-on-primary-container flex items-center justify-center text-4xl shadow-xl group-hover:scale-110 transition-transform duration-300">
+<span class="material-symbols-outlined text-[48px]">photo_camera</span>
+</div>
+<div class="bg-primary text-on-primary w-8 h-8 rounded-full flex items-center justify-center font-bold absolute top-0 right-1/4 md:right-1/3 border-4 border-white">1</div>
+<h3 class="font-headline-sm text-headline-sm mt-4">Foto Kerusakan</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Ambil foto bagian gedung yang bermasalah atau rusak langsung dari aplikasi.</p>
+</div>
+<!-- Step 2 -->
+<div class="relative z-10 flex flex-col items-center text-center space-y-stack-md group">
+<div class="w-24 h-24 rounded-3xl bg-secondary-container text-on-secondary-container flex items-center justify-center text-4xl shadow-xl group-hover:scale-110 transition-transform duration-300">
+<span class="material-symbols-outlined text-[48px]">send</span>
+</div>
+<div class="bg-primary text-on-primary w-8 h-8 rounded-full flex items-center justify-center font-bold absolute top-0 right-1/4 md:right-1/3 border-4 border-white">2</div>
+<h3 class="font-headline-sm text-headline-sm mt-4">Kirim Laporan</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Lengkapi detail lokasi dan kategori masalah, lalu kirim laporan secara instan.</p>
+</div>
+<!-- Step 3 -->
+<div class="relative z-10 flex flex-col items-center text-center space-y-stack-md group">
+<div class="w-24 h-24 rounded-3xl bg-tertiary-container text-on-tertiary-container flex items-center justify-center text-4xl shadow-xl group-hover:scale-110 transition-transform duration-300">
+<span class="material-symbols-outlined text-[48px]">fact_check</span>
+</div>
+<div class="bg-primary text-on-primary w-8 h-8 rounded-full flex items-center justify-center font-bold absolute top-0 right-1/4 md:right-1/3 border-4 border-white">3</div>
+<h3 class="font-headline-sm text-headline-sm mt-4">Pantau Progress</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Dapatkan notifikasi real-time saat laporan Anda sedang diproses dan selesai.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Feature Bento Grid -->
+<section class="py-section-gap px-margin-mobile md:px-gutter max-w-container-max mx-auto" id="features">
+<div class="flex flex-col md:flex-row justify-between items-end mb-12 gap-4">
+<div class="max-w-xl">
+<h2 class="font-headline-md text-[32px] text-on-background mb-4">Fitur Utama CivicReport</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Kami menyediakan alat yang dibutuhkan untuk transparansi fasilitas publik.</p>
+</div>
+<a class="text-primary font-label-md flex items-center gap-2 hover:underline" href="#">Lihat Semua Fitur <span class="material-symbols-outlined">arrow_forward</span></a>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-12 grid-rows-none md:grid-rows-2 gap-gutter">
+<!-- Large Feature -->
+<div class="md:col-span-8 md:row-span-2 bg-primary-container text-on-primary-container rounded-[2rem] p-stack-lg relative overflow-hidden flex flex-col justify-end min-h-[400px]">
+<div class="absolute top-0 right-0 p-stack-lg opacity-20">
+<span class="material-symbols-outlined text-[180px]">dashboard</span>
+</div>
+<div class="relative z-10">
+<div class="bg-white/20 backdrop-blur-md w-14 h-14 rounded-2xl flex items-center justify-center mb-6">
+<span class="material-symbols-outlined text-white">query_stats</span>
+</div>
+<h3 class="font-headline-md text-[28px] mb-4">Dashboard Analytics Real-time</h3>
+<p class="font-body-md max-w-md opacity-90">Pantau seluruh status fasilitas gedung Anda dalam satu tampilan dashboard yang intuitif dan akurat.</p>
+</div>
+</div>
+<!-- Small Feature 1 -->
+<div class="md:col-span-4 bg-white border border-outline-variant/30 rounded-[2rem] p-stack-lg flex flex-col justify-between shadow-sm hover:shadow-md transition-shadow">
+<div class="bg-secondary-container w-12 h-12 rounded-xl flex items-center justify-center text-on-secondary-container">
+<span class="material-symbols-outlined">notifications_active</span>
+</div>
+<div>
+<h3 class="font-headline-sm mt-6 mb-2">Notifikasi Push</h3>
+<p class="font-body-md text-on-surface-variant text-sm">Update instan di HP Anda ketika perbaikan selesai dilakukan.</p>
+</div>
+</div>
+<!-- Small Feature 2 -->
+<div class="md:col-span-4 bg-surface-container-high rounded-[2rem] p-stack-lg flex flex-col justify-between hover:bg-surface-container-highest transition-colors">
+<div class="bg-primary w-12 h-12 rounded-xl flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined">history</span>
+</div>
+<div>
+<h3 class="font-headline-sm mt-6 mb-2">Riwayat Lengkap</h3>
+<p class="font-body-md text-on-surface-variant text-sm">Arsip digital seluruh laporan untuk audit dan evaluasi berkala.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Download App Section -->
+<section class="py-section-gap" id="download">
+<div class="px-margin-mobile md:px-gutter max-w-container-max mx-auto">
+<div class="bg-inverse-surface text-inverse-on-surface rounded-[3rem] overflow-hidden relative">
+<!-- Background Decoration -->
+<div class="absolute top-0 right-0 w-1/2 h-full bg-primary/10 -skew-x-12 translate-x-1/4"></div>
+<div class="grid grid-cols-1 md:grid-cols-2 items-center">
+<div class="p-12 md:p-20 space-y-stack-md">
+<h2 class="font-display-lg-mobile md:font-headline-md text-white">Tersedia di Semua Platform</h2>
+<p class="font-body-lg opacity-80">Laporkan masalah di mana saja, kapan saja langsung dari smartphone Anda. Dapatkan kenyamanan bekerja yang terjamin.</p>
+<div class="flex flex-wrap gap-4 pt-6">
+<!-- App Store Badge -->
+<a class="bg-black border border-white/20 rounded-xl px-6 py-3 flex items-center gap-3 hover:bg-white/10 transition-colors" href="#">
+<div class="text-white text-3xl"><span class="material-symbols-outlined text-[32px]">apps</span></div>
+<div class="text-left">
+<div class="text-[10px] uppercase font-bold opacity-60">Download on</div>
+<div class="text-lg font-bold leading-none">App Store</div>
+</div>
+</a>
+<!-- Google Play Badge -->
+<a class="bg-black border border-white/20 rounded-xl px-6 py-3 flex items-center gap-3 hover:bg-white/10 transition-colors" href="#">
+<div class="text-white text-3xl"><span class="material-symbols-outlined text-[32px]">play_books</span></div>
+<div class="text-left">
+<div class="text-[10px] uppercase font-bold opacity-60">Get it on</div>
+<div class="text-lg font-bold leading-none">Google Play</div>
+</div>
+</a>
+</div>
+</div>
+<div class="hidden md:flex justify-center items-end h-full">
+<img class="w-3/4 translate-y-20" data-alt="A clean, isolated studio shot of a high-end modern smartphone displaying a vibrant, professional reporting dashboard app UI with blue buttons and clear progress charts. The phone is floating at an angle against a deep navy background with soft ambient lighting, creating a high-tech and sophisticated feel." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBbRLAACvJEngi2ozk-7us7v2tyDtVGK56TUrY_BlZbdO9bzyxqqvbn96m7YjatcONTf1zYWfFsN-PD4o3zraXAcXclWjvXYq28FJrbwooGgJqk23MtbUsPDqNiGBU7GN-U74NIET8lwbJagCxXIbAYeE69ApoYIUz4pj1-pHAkI4RkAyIcl4s-nDqS5P-WCUwAiSx7OVd69gBEc1y-aRDJw4oIku7yWcLAQ468P8fVwT9COf1MY9H67VKpml-z1I_C0jF2lV2NfdU"/>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-surface-container-lowest border-t border-outline-variant w-full py-stack-lg">
+<div class="grid grid-cols-1 md:grid-cols-12 gap-gutter px-margin-mobile md:px-gutter max-w-container-max mx-auto">
+<div class="md:col-span-5 space-y-4">
+<div class="font-headline-sm text-headline-sm font-bold text-primary">CivicReport</div>
+<p class="font-body-md text-body-md text-on-surface-variant">
+                    © 2024 CivicReport. Accountability, efficiency, and transparency in facility management.
+                </p>
+</div>
+<div class="md:col-span-2 space-y-4">
+<h4 class="font-label-md text-primary">Company</h4>
+<ul class="space-y-2 font-body-md text-on-surface-variant">
+<li><a class="hover:underline decoration-primary underline-offset-4 transition-all" href="#">Contact Us</a></li>
+<li><a class="hover:underline decoration-primary underline-offset-4 transition-all" href="#">About Us</a></li>
+<li><a class="hover:underline decoration-primary underline-offset-4 transition-all" href="#">Careers</a></li>
+</ul>
+</div>
+<div class="md:col-span-2 space-y-4">
+<h4 class="font-label-md text-primary">Support</h4>
+<ul class="space-y-2 font-body-md text-on-surface-variant">
+<li><a class="hover:underline decoration-primary underline-offset-4 transition-all" href="#">FAQ</a></li>
+<li><a class="hover:underline decoration-primary underline-offset-4 transition-all" href="#">Help Center</a></li>
+<li><a class="hover:underline decoration-primary underline-offset-4 transition-all" href="#">Guidelines</a></li>
+</ul>
+</div>
+<div class="md:col-span-3 space-y-4">
+<h4 class="font-label-md text-primary">Legal</h4>
+<ul class="space-y-2 font-body-md text-on-surface-variant">
+<li><a class="hover:underline decoration-primary underline-offset-4 transition-all" href="#">Privacy Policy</a></li>
+<li><a class="hover:underline decoration-primary underline-offset-4 transition-all" href="#">Terms of Service</a></li>
+</ul>
+</div>
+</div>
+</footer>
+<!-- Micro-interaction Script -->
+<script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Simple reveal on scroll effect
+            const observerOptions = {
+                threshold: 0.1
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('opacity-100', 'translate-y-0');
+                        entry.target.classList.remove('opacity-0', 'translate-y-10');
+                    }
+                });
+            }, observerOptions);
+
+            document.querySelectorAll('section').forEach(section => {
+                section.classList.add('transition-all', 'duration-700', 'opacity-0', 'translate-y-10');
+                observer.observe(section);
+            });
+
+            // Smooth Scroll
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    document.querySelector(this.getAttribute('href')).scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                });
+            });
+        });
+    </script>
+</body></html>
