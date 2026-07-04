@@ -13,6 +13,7 @@ class Inspection extends Model
         'user_id',
         'room_id',
         'description',
+        'is_read',
     ];
 
     public function user()

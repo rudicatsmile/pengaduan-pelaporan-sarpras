@@ -81,7 +81,7 @@ class ReportController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-        $query = Report::with(['category', 'room'])->latest();
+        $query = Report::with(['category', 'room', 'assignedUser'])->latest();
 
         if ($user->hasAnyRole(['admin', 'super_admin', 'supervisor'])) {
             // Admin, Super Admin, and Supervisor sees all
@@ -103,7 +103,7 @@ class ReportController extends Controller
     public function show(Request $request, $id)
     {
         $user = $request->user();
-        $query = Report::with(['category', 'room', 'attachments', 'activities'])->where('id', $id);
+        $query = Report::with(['category', 'room', 'attachments', 'activities', 'assignedUser'])->where('id', $id);
 
         if ($user->hasRole('petugas')) {
             $query->where(function($q) use ($user) {
@@ -153,19 +153,23 @@ class ReportController extends Controller
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        $request->validate(['petugas_id' => 'required|exists:users,id']);
+        $request->validate([
+            'petugas_id' => 'required|exists:users,id',
+            'expected_completion_time' => 'nullable|date',
+        ]);
 
         $report = Report::findOrFail($id);
         $report->update([
             'status' => 'didelegasikan',
             'assigned_to' => $request->petugas_id,
+            'expected_completion_time' => $request->expected_completion_time,
         ]);
 
         $petugas = User::find($request->petugas_id);
 
         $report->activities()->create([
             'user_id' => $request->user()->id,
-            'action' => 'Laporan didelegasikan ke ' . $petugas->name,
+            'action' => 'Laporan didelegasikan ke ' . $petugas->name . ($request->expected_completion_time ? ' dengan estimasi selesai ' . \Carbon\Carbon::parse($request->expected_completion_time)->format('d-m-Y H:i') : ''),
         ]);
 
         if ($petugas->phone) {
@@ -173,6 +177,15 @@ class ReportController extends Controller
                 $petugas->phone, 
                 "Halo {$petugas->name}, Anda mendapat delegasi tugas baru (Laporan ID: {$report->id}). Silakan cek aplikasi untuk detailnya."
             );
+        }
+
+        $pelapor = $report->user;
+        if ($pelapor && $pelapor->phone) {
+             \App\Services\WablasService::send(
+                 $pelapor->phone,
+                 "Halo {$pelapor->name}, Laporan Anda (ID: {$report->id}) telah diproses dan didelegasikan kepada teknisi {$petugas->name}." . 
+                 ($request->expected_completion_time ? " Estimasi selesai: " . \Carbon\Carbon::parse($request->expected_completion_time)->format('d-m-Y H:i') : "")
+             );
         }
 
         return response()->json(['message' => 'Laporan berhasil didelegasikan']);
@@ -214,6 +227,14 @@ class ReportController extends Controller
             'user_id' => $request->user()->id,
             'action' => 'Laporan diselesaikan: ' . $request->resolution_notes,
         ]);
+
+        $pelapor = $report->user;
+        if ($pelapor && $pelapor->phone) {
+             \App\Services\WablasService::send(
+                 $pelapor->phone,
+                 "Halo {$pelapor->name}, Laporan Anda (ID: {$report->id}) telah selesai ditangani. Terima kasih."
+             );
+        }
 
         return response()->json(['message' => 'Laporan berhasil diselesaikan']);
     }

@@ -40,8 +40,8 @@ class RoomController extends Controller
 
     public function generateQr(Room $room)
     {
-        // Data to encode in QR (We will just encode the room ID in a specific format)
-        $qrData = "ROOM:" . $room->id;
+        // Generate public URL for this room
+        $qrData = url('/p/' . $room->id);
         
         // Generate QR code image as base64 string
         $qrCode = base64_encode(QrCode::format('svg')->size(300)->generate($qrData));

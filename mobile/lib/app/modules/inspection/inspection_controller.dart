@@ -104,6 +104,12 @@ class InspectionController extends GetxController {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('auth_token');
       
+      if (token == 'guest') {
+        inspections.value = [];
+        hasMore.value = false;
+        return;
+      }
+      
       final response = await _dio.get(
         '/inspections?page=${currentPage.value}',
         options: dio.Options(headers: {'Authorization': 'Bearer $token'}),

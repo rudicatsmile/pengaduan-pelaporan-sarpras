@@ -20,14 +20,29 @@ class ReportFormController extends GetxController {
 
   final  _dio = ApiClient.instance;
 
+  final guestNameController = TextEditingController();
+  final guestPhoneController = TextEditingController();
+  final isGuest = false.obs;
+
   @override
   void onInit() {
     super.onInit();
+    _checkGuestStatus();
     _fetchCategories();
     final code = Get.parameters['room_code'];
     if (code != null) {
       roomCode.value = code;
       _fetchRoomData(code);
+    }
+  }
+
+  Future<void> _checkGuestStatus() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+    isGuest.value = (token == 'guest');
+    if (isGuest.value) {
+      guestNameController.text = prefs.getString('guest_name') ?? '';
+      guestPhoneController.text = prefs.getString('guest_phone') ?? '';
     }
   }
 
@@ -38,7 +53,7 @@ class ReportFormController extends GetxController {
       
       final response = await _dio.get(
         '/categories',
-        options: dio.Options(headers: {'Authorization': 'Bearer $token'}),
+        options: token == 'guest' ? null : dio.Options(headers: {'Authorization': 'Bearer $token'}),
       );
       
       if (response.statusCode == 200) {
@@ -52,6 +67,7 @@ class ReportFormController extends GetxController {
       Get.snackbar('Error', 'Gagal memuat daftar kategori');
     }
   }
+
   Future<void> _fetchRoomData(String code) async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -59,7 +75,7 @@ class ReportFormController extends GetxController {
       
       final response = await _dio.get(
         '/rooms/$code',
-        options: dio.Options(headers: {'Authorization': 'Bearer $token'}),
+        options: token == 'guest' ? null : dio.Options(headers: {'Authorization': 'Bearer $token'}),
       );
       
       if (response.statusCode == 200) {
@@ -150,6 +166,17 @@ class ReportFormController extends GetxController {
   }
 
   Future<void> submitReport() async {
+    if (isGuest.value) {
+      if (guestNameController.text.isEmpty) {
+        Get.snackbar('Error', 'Nama wajib diisi');
+        return;
+      }
+      if (guestPhoneController.text.isEmpty) {
+        Get.snackbar('Error', 'Nomor WA wajib diisi');
+        return;
+      }
+    }
+
     if (descriptionController.text.isEmpty) {
       Get.snackbar('Error', 'Deskripsi tidak boleh kosong');
       return;
@@ -171,6 +198,11 @@ class ReportFormController extends GetxController {
         'description': descriptionController.text,
       };
 
+      if (isGuest.value) {
+        formMap['guest_name'] = guestNameController.text;
+        formMap['guest_phone'] = guestPhoneController.text;
+      }
+
       for (int i = 0; i < selectedImages.length; i++) {
         formMap['attachments[$i]'] = await dio.MultipartFile.fromFile(
           selectedImages[i].path,
@@ -180,23 +212,41 @@ class ReportFormController extends GetxController {
 
       final formData = dio.FormData.fromMap(formMap);
 
+      final endpoint = isGuest.value ? '/guest/reports' : '/reports';
       final response = await _dio.post(
-        '/reports',
+        endpoint,
         data: formData,
-        options: dio.Options(headers: {
+        options: isGuest.value ? null : dio.Options(headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'multipart/form-data',
         }),
       );
 
       if (response.statusCode == 201) {
-        Get.snackbar(
-          'Sukses', 
-          'Laporan berhasil disubmit',
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
-        );
-        Get.offAllNamed('/home');
+        if (isGuest.value) {
+          await prefs.setString('guest_name', guestNameController.text);
+          await prefs.setString('guest_phone', guestPhoneController.text);
+          
+          Get.defaultDialog(
+            title: 'Terima Kasih!',
+            middleText: 'Terima kasih, laporan Anda telah kami terima dan akan segera ditindaklanjuti oleh petugas sarpras.',
+            textConfirm: 'Selesai',
+            confirmTextColor: Colors.white,
+            buttonColor: const Color(0xFF047857),
+            barrierDismissible: false,
+            onConfirm: () {
+              Get.offAllNamed('/landing');
+            },
+          );
+        } else {
+          Get.snackbar(
+            'Sukses', 
+            'Laporan berhasil disubmit',
+            backgroundColor: Colors.green,
+            colorText: Colors.white,
+          );
+          Get.offAllNamed('/home');
+        }
       }
     } on dio.DioException catch (e) {
       Get.snackbar(
@@ -213,6 +263,8 @@ class ReportFormController extends GetxController {
   @override
   void onClose() {
     descriptionController.dispose();
+    guestNameController.dispose();
+    guestPhoneController.dispose();
     super.onClose();
   }
 }

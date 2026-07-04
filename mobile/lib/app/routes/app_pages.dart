@@ -1,6 +1,8 @@
 import 'package:get/get.dart';
 import '../modules/splash/splash_binding.dart';
 import '../modules/splash/splash_view.dart';
+import '../modules/landing/landing_binding.dart';
+import '../modules/landing/landing_view.dart';
 import '../modules/login/login_binding.dart';
 import '../modules/login/login_view.dart';
 import '../modules/register/register_binding.dart';
@@ -32,6 +34,11 @@ class AppPages {
       name: Routes.SPLASH,
       page: () => const SplashView(),
       binding: SplashBinding(),
+    ),
+    GetPage(
+      name: Routes.LANDING,
+      page: () => const LandingView(),
+      binding: LandingBinding(),
     ),
     GetPage(
       name: Routes.LOGIN,

@@ -29,11 +29,27 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $settings = \App\Models\Setting::pluck('value', 'key')->toArray();
+
         return [
             ...parent::share($request),
             'auth' => [
                 'user' => $request->user() ? array_merge($request->user()->toArray(), ['roles' => $request->user()->getRoleNames()]) : null,
             ],
+            'app_settings' => [
+                'app_name' => $settings['app_name'] ?? 'Pengaduan Sarpras',
+                'app_logo' => $settings['app_logo'] ?? null,
+                'owner_name' => $settings['owner_name'] ?? null,
+                'owner_phone' => $settings['owner_phone'] ?? null,
+                'owner_email' => $settings['owner_email'] ?? null,
+                'owner_address' => $settings['owner_address'] ?? null,
+            ],
+            'flash' => [
+                'success' => $request->session()->get('success'),
+                'error' => $request->session()->get('error'),
+                'message' => $request->session()->get('message'),
+                'report_id' => $request->session()->get('report_id'),
+            ]
         ];
     }
 }

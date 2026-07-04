@@ -6,11 +6,22 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\RoomController;
 use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\CategoryController;
+use App\Http\Controllers\Api\SettingController;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
-Route::get('/settings', [\App\Http\Controllers\SettingController::class, 'index']);
+Route::get('/settings/logo', [SettingController::class, 'getLogo']);
+Route::get('/settings', [SettingController::class, 'index']);
+
+// Public / Guest Routes
+Route::get('/categories', [CategoryController::class, 'index']);
+Route::get('/buildings', [\App\Http\Controllers\BuildingController::class, 'index']);
+Route::get('/buildings/{buildingId}/floors', [\App\Http\Controllers\FloorController::class, 'getByBuilding']);
+Route::get('/floors/{floorId}/rooms', [RoomController::class, 'getByFloor']);
+Route::get('/rooms', [RoomController::class, 'index']);
+Route::get('/rooms/{code}', [RoomController::class, 'show']);
+Route::post('/guest/reports', [\App\Http\Controllers\Api\GuestReportController::class, 'store']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', [AuthController::class, 'user']);
@@ -21,15 +32,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/settings/update', [\App\Http\Controllers\SettingController::class, 'update']);
     Route::post('/settings/logo', [\App\Http\Controllers\SettingController::class, 'uploadLogo']);
 
-    Route::get('/categories', [CategoryController::class, 'index']);
     Route::get('/petugas', [\App\Http\Controllers\Api\PetugasController::class, 'index']);
     
-    Route::get('/buildings', [\App\Http\Controllers\BuildingController::class, 'index']);
-    Route::get('/buildings/{buildingId}/floors', [\App\Http\Controllers\FloorController::class, 'getByBuilding']);
-    Route::get('/floors/{floorId}/rooms', [RoomController::class, 'getByFloor']);
-    
-    Route::get('/rooms', [RoomController::class, 'index']);
-    Route::get('/rooms/{code}', [RoomController::class, 'show']);
     Route::post('/reports', [ReportController::class, 'store']);
     Route::get('/reports', [ReportController::class, 'index']);
     Route::get('/reports/{id}', [ReportController::class, 'show']);
@@ -44,6 +48,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/inspections', [\App\Http\Controllers\Api\InspectionController::class, 'index']);
     Route::post('/inspections', [\App\Http\Controllers\Api\InspectionController::class, 'store']);
     Route::get('/inspections/{id}', [\App\Http\Controllers\Api\InspectionController::class, 'show']);
+    Route::post('/inspections/{id}/read', [\App\Http\Controllers\Api\InspectionController::class, 'markAsRead']);
 
     Route::get('/tasks', [\App\Http\Controllers\Api\TaskController::class, 'index']);
     Route::post('/tasks/{id}/process', [\App\Http\Controllers\Api\TaskController::class, 'process']);

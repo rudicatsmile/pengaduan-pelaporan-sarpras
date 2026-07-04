@@ -90,7 +90,7 @@ class LoginView extends GetView<LoginController> {
               TextButton(
                 onPressed: controller.goToRegister,
                 child: const Text('Belum punya akun? Daftar sekarang'),
-              )
+              ),
             ],
           ),
         ),

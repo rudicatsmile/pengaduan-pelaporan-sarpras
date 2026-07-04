@@ -23,6 +23,7 @@ return new class extends Migration
             $table->foreignId('assigned_to')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignId('verified_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamp('verified_at')->nullable();
+            $table->timestamp('expected_completion_time')->nullable();
             $table->timestamp('resolved_at')->nullable();
             $table->timestamps();
             $table->softDeletes();

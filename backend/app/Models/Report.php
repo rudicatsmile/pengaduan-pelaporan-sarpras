@@ -36,4 +36,9 @@ class Report extends Model
     {
         return $this->belongsTo(Category::class);
     }
+
+    public function assignedUser()
+    {
+        return $this->belongsTo(User::class, 'assigned_to');
+    }
 }

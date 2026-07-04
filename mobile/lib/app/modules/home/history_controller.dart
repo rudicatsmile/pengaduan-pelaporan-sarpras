@@ -49,6 +49,12 @@ class HistoryController extends GetxController {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('auth_token');
       
+      if (token == 'guest') {
+        reports.value = [];
+        hasMore.value = false;
+        return;
+      }
+      
       final response = await _dio.get(
         '/reports?page=${currentPage.value}',
         options: Options(headers: {'Authorization': 'Bearer $token'}),

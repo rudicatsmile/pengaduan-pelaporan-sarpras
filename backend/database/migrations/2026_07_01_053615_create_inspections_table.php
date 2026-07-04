@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
             $table->foreignId('room_id')->constrained('rooms')->restrictOnDelete();
             $table->text('description');
+            $table->boolean('is_read')->default(false);
             $table->timestamps();
         });
     }

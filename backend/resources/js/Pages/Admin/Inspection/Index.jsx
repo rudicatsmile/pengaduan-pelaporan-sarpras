@@ -7,11 +7,11 @@ export default function Index({ auth, inspections }) {
         <AuthenticatedLayout
             header={
                 <h2 className="text-xl font-semibold leading-tight text-gray-800">
-                    Inspeksi Sarpras
+                    Laporan Kinerja
                 </h2>
             }
         >
-            <Head title="Inspeksi Sarpras" />
+            <Head title="Laporan Kinerja" />
 
             <div className="py-12">
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
@@ -25,6 +25,7 @@ export default function Index({ auth, inspections }) {
                                             <th className="px-6 py-3">Waktu</th>
                                             <th className="px-6 py-3">Pelapor</th>
                                             <th className="px-6 py-3">Ruangan</th>
+                                            <th className="px-6 py-3">Status</th>
                                             <th className="px-6 py-3">Deskripsi Singkat</th>
                                             <th className="px-6 py-3">Aksi</th>
                                         </tr>
@@ -41,6 +42,17 @@ export default function Index({ auth, inspections }) {
                                                     <td className="px-6 py-4">{dayjs(inspection.created_at).format('DD MMM YYYY HH:mm')}</td>
                                                     <td className="px-6 py-4">{inspection.user?.name}</td>
                                                     <td className="px-6 py-4">{inspection.room?.name}</td>
+                                                    <td className="px-6 py-4">
+                                                        {inspection.is_read ? (
+                                                            <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                                                Sudah Dibaca
+                                                            </span>
+                                                        ) : (
+                                                            <span className="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                                                                Belum Dibaca
+                                                            </span>
+                                                        )}
+                                                    </td>
                                                     <td className="px-6 py-4 truncate max-w-xs">{inspection.description}</td>
                                                     <td className="px-6 py-4">
                                                         <Link

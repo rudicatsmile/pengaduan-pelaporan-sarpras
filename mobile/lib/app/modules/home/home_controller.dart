@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../routes/app_pages.dart';
+import '../../core/services/settings_service.dart';
 
 class HomeController extends GetxController {
   final currentIndex = 0.obs;
@@ -22,16 +23,10 @@ class HomeController extends GetxController {
   }
 
   Future<void> _fetchSettings() async {
-    try {
-      final response = await _dio.get('/settings');
-      if (response.statusCode == 200) {
-        if (response.data['app_name'] != null) {
-          appName.value = response.data['app_name'];
-        }
-      }
-    } catch (e) {
-      // print('Failed to fetch settings');
-    }
+    appName.value = SettingsService.to.appName.value;
+    SettingsService.to.appName.listen((value) {
+      appName.value = value;
+    });
   }
 
   Future<void> _fetchUser() async {
@@ -39,6 +34,13 @@ class HomeController extends GetxController {
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('auth_token');
+      
+      if (token == 'guest') {
+        userName.value = 'Tamu (Anonim)';
+        userRole.value = 'tamu';
+        isLoading.value = false;
+        return;
+      }
       
       final response = await _dio.get(
         '/user',

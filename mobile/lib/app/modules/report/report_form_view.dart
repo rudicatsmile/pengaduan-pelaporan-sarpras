@@ -34,6 +34,35 @@ class ReportFormView extends GetView<ReportFormController> {
               ),
             ),
             const SizedBox(height: 16),
+            Obx(() {
+              if (controller.isGuest.value) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Data Diri (Tamu)', style: TextStyle(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: controller.guestNameController,
+                      decoration: const InputDecoration(
+                        labelText: 'Nama Lengkap',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: controller.guestPhoneController,
+                      keyboardType: TextInputType.phone,
+                      decoration: const InputDecoration(
+                        labelText: 'Nomor WhatsApp',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                  ],
+                );
+              }
+              return const SizedBox.shrink();
+            }),
             const Text('Kategori Masalah', style: TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             Obx(() => controller.categories.isEmpty 

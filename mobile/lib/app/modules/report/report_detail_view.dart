@@ -286,6 +286,18 @@ class ReportDetailView extends GetView<ReportDetailController> {
                     Text('Kategori: ${data['category']?['name'] ?? '-'}', style: const TextStyle(color: Colors.black87)),
                     const SizedBox(height: 4),
                     Text('Lokasi: ${data['room'] != null ? data['room']['name'] : (data['location_text'] ?? '-')}', style: const TextStyle(color: Colors.black87)),
+                    if (data['assigned_user'] != null) ...[
+                      const SizedBox(height: 12),
+                      const Text('Teknisi Bertugas:', style: TextStyle(fontWeight: FontWeight.w600, color: Colors.black54, fontSize: 12)),
+                      const SizedBox(height: 4),
+                      Text(data['assigned_user']['name'] ?? '-', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                    ],
+                    if (data['expected_completion_time'] != null) ...[
+                      const SizedBox(height: 12),
+                      const Text('Estimasi Selesai (SLA):', style: TextStyle(fontWeight: FontWeight.w600, color: Colors.black54, fontSize: 12)),
+                      const SizedBox(height: 4),
+                      Text(data['expected_completion_time'].toString().substring(0, 16), style: const TextStyle(fontSize: 14, color: Colors.red, fontWeight: FontWeight.bold)),
+                    ],
                     const SizedBox(height: 12),
                     const Text('Deskripsi:', style: TextStyle(fontWeight: FontWeight.w600, color: Colors.black54, fontSize: 12)),
                     const SizedBox(height: 4),

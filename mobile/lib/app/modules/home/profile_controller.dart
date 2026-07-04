@@ -33,6 +33,12 @@ class ProfileController extends GetxController {
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('auth_token');
+      
+      if (token == 'guest') {
+        isLoading.value = false;
+        return;
+      }
+      
       final response = await _dio.get('/user', options: dio.Options(headers: {'Authorization': 'Bearer $token'}));
       
       if (response.statusCode == 200) {

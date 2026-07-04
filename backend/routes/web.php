@@ -14,6 +14,10 @@ Route::get('/', function () {
     ]);
 });
 
+// Public Report Routes (Anonymous)
+Route::get('/p/{roomId}', [\App\Http\Controllers\GuestReportController::class, 'showForm'])->name('public.report.form');
+Route::post('/p/{roomId}', [\App\Http\Controllers\GuestReportController::class, 'store'])->name('public.report.store');
+
 Route::get('/dashboard', function () {
     $stats = [
         'total' => \App\Models\Report::count(),

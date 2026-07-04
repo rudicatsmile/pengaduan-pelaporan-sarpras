@@ -8,7 +8,7 @@ export default function Show({ auth, inspection }) {
             header={
                 <div className="flex justify-between items-center">
                     <h2 className="text-xl font-semibold leading-tight text-gray-800">
-                        Detail Inspeksi #{inspection.id}
+                        Detail Laporan Kinerja #{inspection.id}
                     </h2>
                     <Link href={route('inspections.index')} className="text-sm text-gray-500 hover:text-gray-700">
                         &larr; Kembali
@@ -16,7 +16,7 @@ export default function Show({ auth, inspection }) {
                 </div>
             }
         >
-            <Head title={`Detail Inspeksi #${inspection.id}`} />
+            <Head title={`Detail Laporan Kinerja #${inspection.id}`} />
 
             <div className="py-12">
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8 space-y-6">

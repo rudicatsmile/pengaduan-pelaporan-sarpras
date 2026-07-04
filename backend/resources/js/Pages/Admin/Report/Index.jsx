@@ -4,9 +4,9 @@ import { Head, Link } from '@inertiajs/react';
 export default function Index({ reports }) {
     return (
         <AuthenticatedLayout
-            header={<h2 className="text-xl font-semibold leading-tight text-gray-800">Daftar Laporan</h2>}
+            header={<h2 className="text-xl font-semibold leading-tight text-gray-800">Daftar Pengaduan</h2>}
         >
-            <Head title="Daftar Laporan" />
+            <Head title="Daftar Pengaduan" />
 
             <div className="py-12">
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
@@ -28,7 +28,9 @@ export default function Index({ reports }) {
                                     {reports.map((report) => (
                                         <tr key={report.id} className="hover:bg-gray-50">
                                             <td className="border-b p-4">#{report.id}</td>
-                                            <td className="border-b p-4">{report.user?.name}</td>
+                                            <td className="border-b p-4">
+                                                {report.user ? report.user.name : (report.guest_name ? `${report.guest_name} (Anonim)` : 'Anonim')}
+                                            </td>
                                             <td className="border-b p-4">
                                                 {report.type === 'pengaduan_qr' ? 'QR Code' : 'Umum'}
                                             </td>

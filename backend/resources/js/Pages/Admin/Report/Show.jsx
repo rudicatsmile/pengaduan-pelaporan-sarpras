@@ -8,6 +8,7 @@ export default function Show({ report, petugas }) {
     const { auth } = usePage().props;
     const currentUser = auth.user;
     const [selectedPetugas, setSelectedPetugas] = useState('');
+    const [expectedCompletionTime, setExpectedCompletionTime] = useState('');
     const [lightboxOpen, setLightboxOpen] = useState(false);
     const [lightboxIndex, setLightboxIndex] = useState(0);
     const [resolutionNotes, setResolutionNotes] = useState('');
@@ -22,7 +23,8 @@ export default function Show({ report, petugas }) {
         e.preventDefault();
         if (!selectedPetugas) return alert('Pilih petugas!');
         router.post(route('reports.delegate', report.id), {
-            petugas_id: selectedPetugas
+            petugas_id: selectedPetugas,
+            expected_completion_time: expectedCompletionTime
         });
     };
 
@@ -42,9 +44,9 @@ export default function Show({ report, petugas }) {
 
     return (
         <AuthenticatedLayout
-            header={<h2 className="text-xl font-semibold leading-tight text-gray-800">Detail Laporan #{report.id}</h2>}
+            header={<h2 className="text-xl font-semibold leading-tight text-gray-800">Detail Pengaduan #{report.id}</h2>}
         >
-            <Head title={`Laporan #${report.id}`} />
+            <Head title={`Pengaduan #${report.id}`} />
 
             <div className="py-12">
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -54,7 +56,12 @@ export default function Show({ report, petugas }) {
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <p className="text-sm text-gray-500">Pelapor</p>
-                                    <p className="font-medium">{report.user?.name}</p>
+                                    <p className="font-medium">
+                                        {report.user ? report.user.name : (report.guest_name ? `${report.guest_name} (Anonim)` : 'Anonim')}
+                                    </p>
+                                    {!report.user && report.guest_phone && (
+                                        <p className="text-sm text-gray-500 mt-1">WA: {report.guest_phone}</p>
+                                    )}
                                 </div>
                                 <div>
                                     <p className="text-sm text-gray-500">Status</p>
@@ -101,7 +108,9 @@ export default function Show({ report, petugas }) {
                                 {report.activities?.map(act => (
                                     <div key={act.id} className="border-l-4 border-blue-500 pl-4 py-1">
                                         <p className="font-medium">{act.action}</p>
-                                        <p className="text-sm text-gray-500">{act.user?.name} - {new Date(act.created_at).toLocaleString()}</p>
+                                        <p className="text-sm text-gray-500">
+                                            {act.user ? act.user.name : 'Pengunjung (Anonim)'} - {new Date(act.created_at).toLocaleString()}
+                                        </p>
                                     </div>
                                 ))}
                             </div>
@@ -135,6 +144,15 @@ export default function Show({ report, petugas }) {
                                                 <option key={p.id} value={p.id}>{p.name}</option>
                                             ))}
                                         </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700">Estimasi Selesai (SLA)</label>
+                                        <input
+                                            type="datetime-local"
+                                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                            value={expectedCompletionTime}
+                                            onChange={e => setExpectedCompletionTime(e.target.value)}
+                                        />
                                     </div>
                                     <button
                                         type="submit"

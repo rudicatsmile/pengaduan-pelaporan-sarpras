@@ -13,8 +13,14 @@ class QRScannerController extends GetxController {
       if (barcode.rawValue != null) {
         _isScanned = true;
         scannerController.stop();
-        // Assuming QR code contains raw text of room code (e.g. R-001)
-        final roomCode = barcode.rawValue;
+        
+        String? roomCode = barcode.rawValue;
+        // Parse if it's a URL (e.g. http://127.0.0.1:8000/p/1)
+        if (roomCode != null && roomCode.contains('/p/')) {
+          final id = roomCode.split('/p/').last;
+          roomCode = 'ROOM:$id';
+        }
+
         Get.offNamed('/report/form', parameters: {'room_code': roomCode ?? ''});
         break;
       }

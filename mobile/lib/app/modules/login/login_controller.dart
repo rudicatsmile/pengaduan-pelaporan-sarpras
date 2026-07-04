@@ -57,6 +57,7 @@ class LoginController extends GetxController {
     Get.toNamed(Routes.REGISTER);
   }
 
+
   @override
   void onClose() {
     super.onClose();

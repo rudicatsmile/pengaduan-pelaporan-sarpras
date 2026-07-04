@@ -18,8 +18,8 @@ class HomeView extends GetView<HomeController> {
         index: controller.currentIndex.value,
         children: [
           _buildDashboard(context),
-          _buildHistory(context),
-          _buildProfile(context),
+          controller.userRole.value == 'tamu' ? _buildGuestLoginPrompt(context, 'Riwayat') : _buildHistory(context),
+          controller.userRole.value == 'tamu' ? _buildGuestLoginPrompt(context, 'Profil') : _buildProfile(context),
         ],
       )),
       bottomNavigationBar: Obx(() {
@@ -638,7 +638,27 @@ class HomeView extends GetView<HomeController> {
                         return Card(
                           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                           child: ListTile(
-                            title: Text(inspection['room']?['name'] ?? 'Tanpa Ruangan'),
+                            title: Row(
+                              children: [
+                                Expanded(child: Text(inspection['room']?['name'] ?? 'Tanpa Ruangan')),
+                                if (inspection['is_read'] != null)
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: inspection['is_read'] == 1 || inspection['is_read'] == true ? Colors.green[100] : Colors.red[100],
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Text(
+                                      inspection['is_read'] == 1 || inspection['is_read'] == true ? 'Sudah Dibaca' : 'Belum Dibaca',
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        color: inspection['is_read'] == 1 || inspection['is_read'] == true ? Colors.green[800] : Colors.red[800],
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
                             subtitle: Text(inspection['description'] ?? '', maxLines: 2, overflow: TextOverflow.ellipsis),
                             trailing: const Icon(Icons.chevron_right),
                             onTap: () => Get.toNamed('/inspection/detail', arguments: inspection),
@@ -828,6 +848,41 @@ class HomeView extends GetView<HomeController> {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGuestLoginPrompt(BuildContext context, String feature) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.lock_outline, size: 80, color: Colors.grey),
+            const SizedBox(height: 24),
+            Text(
+              'Fitur Terkunci',
+              style: context.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Fitur $feature hanya tersedia untuk pengguna terdaftar. Silakan login atau daftar untuk mengaksesnya.',
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Colors.grey),
+            ),
+            const SizedBox(height: 32),
+            ElevatedButton(
+              onPressed: () => Get.offAllNamed('/login'),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                backgroundColor: const Color(0xFF047857),
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Login / Daftar'),
+            ),
+          ],
         ),
       ),
     );

@@ -74,4 +74,22 @@ class InspectionController extends Controller
             'data' => $inspection
         ]);
     }
+
+    public function markAsRead(Request $request, $id)
+    {
+        $inspection = Inspection::findOrFail($id);
+        $user = $request->user();
+
+        if (!$user->hasAnyRole(['super_admin', 'admin', 'supervisor'])) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $inspection->update(['is_read' => true]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Status inspeksi berhasil diubah menjadi sudah dibaca.',
+            'data' => $inspection
+        ]);
+    }
 }

@@ -76,6 +76,15 @@ class UserController extends Controller
         if ($user->hasRole('admin') && User::role('admin')->count() <= 1) {
             return redirect()->back()->with('error', 'Tidak dapat menghapus admin terakhir.');
         }
+
+        $hasReports = \App\Models\Report::where('user_id', $user->id)->exists();
+        $hasAssignedReports = \App\Models\Report::where('assigned_to', $user->id)->exists();
+        $hasInspections = \App\Models\Inspection::where('user_id', $user->id)->exists();
+        
+        if ($hasReports || $hasAssignedReports || $hasInspections) {
+            return redirect()->back()->with('error', 'Gagal menghapus! User sudah pernah membuat pengaduan atau melakukan laporan kinerja.');
+        }
+
         $user->delete();
         return redirect()->back()->with('message', 'User berhasil dihapus.');
     }

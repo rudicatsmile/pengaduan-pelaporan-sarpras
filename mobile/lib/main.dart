@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'app/routes/app_pages.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'app/core/services/settings_service.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Get.putAsync(() => SettingsService().init());
   runApp(
     GetMaterialApp(
       title: "Sarpras Report",

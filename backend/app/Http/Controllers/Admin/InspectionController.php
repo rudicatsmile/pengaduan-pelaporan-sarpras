@@ -32,6 +32,10 @@ class InspectionController extends Controller
             abort(403, 'Unauthorized');
         }
 
+        if (!$inspection->is_read && $user->hasAnyRole(['super_admin', 'admin', 'supervisor'])) {
+            $inspection->update(['is_read' => true]);
+        }
+
         return Inertia::render('Admin/Inspection/Show', [
             'inspection' => $inspection
         ]);
