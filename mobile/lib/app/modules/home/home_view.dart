@@ -4,6 +4,7 @@ import 'home_controller.dart';
 import 'history_controller.dart';
 import 'profile_controller.dart';
 import 'package:mobile/app/modules/inspection/inspection_controller.dart' as import_inspection;
+import 'package:mobile/app/modules/asset_inspection/asset_inspection_history_controller.dart';
 import 'dart:typed_data';
 
 class HomeView extends GetView<HomeController> {
@@ -64,13 +65,15 @@ class HomeView extends GetView<HomeController> {
   void _showReportOptions(BuildContext context) {
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (context) => Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('Buat Laporan Baru', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+      builder: (context) => SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('Buat Laporan Baru', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 20),
             ListTile(
               leading: const CircleAvatar(backgroundColor: Colors.teal, child: Icon(Icons.qr_code_scanner, color: Colors.white)),
@@ -101,8 +104,19 @@ class HomeView extends GetView<HomeController> {
                 Get.toNamed('/inspection/form');
               },
             ),
+            const Divider(),
+            ListTile(
+              leading: const CircleAvatar(backgroundColor: Colors.purple, child: Icon(Icons.inventory, color: Colors.white)),
+              title: const Text('Inspeksi Aset'),
+              subtitle: const Text('Inspeksi keberadaan dan kondisi aset'),
+              onTap: () {
+                Navigator.pop(context);
+                Get.toNamed('/asset-inspection/form');
+              },
+            ),
           ],
         ),
+      ),
       ),
     );
   }
@@ -451,32 +465,34 @@ class HomeView extends GetView<HomeController> {
   }
 
   Widget _buildHistory(BuildContext context) {
-    return DefaultTabController(
-      length: 2,
-      child: SafeArea(
-        child: Column(
-          children: [
-            const TabBar(
-              labelColor: Colors.teal,
-              unselectedLabelColor: Colors.grey,
-              indicatorColor: Colors.teal,
-              tabs: [
-                Tab(text: 'Pengaduan'),
-                Tab(text: 'Laporan Kinerja'),
-              ],
-            ),
-            Expanded(
-              child: TabBarView(
-                children: [
+    return SafeArea(
+      child: Column(
+        children: [
+          TabBar(
+            controller: controller.historyTabController,
+            labelColor: Colors.teal,
+            unselectedLabelColor: Colors.grey,
+            indicatorColor: Colors.teal,
+            isScrollable: true,
+            tabs: const [
+              Tab(text: 'Pengaduan'),
+              Tab(text: 'Laporan Kinerja'),
+              Tab(text: 'Inspeksi Aset'),
+            ],
+          ),
+          Expanded(
+            child: TabBarView(
+              controller: controller.historyTabController,
+              children: [
                   _buildPengaduanHistory(context),
                   _buildInspectionHistory(context),
+                  _buildAssetInspectionHistory(context),
                 ],
               ),
             ),
           ],
         ),
-      ),
-    );
+      );
   }
 
   Widget _buildPengaduanHistory(BuildContext context) {
@@ -673,6 +689,86 @@ class HomeView extends GetView<HomeController> {
                               }
                               Get.toNamed('/inspection/detail', arguments: inspection);
                             },
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+      );
+    });
+  }
+
+  Widget _buildAssetInspectionHistory(BuildContext context) {
+    final historyCtrl = Get.put(AssetInspectionHistoryController());
+    return Obx(() {
+      return RefreshIndicator(
+        color: Colors.teal,
+        onRefresh: () => historyCtrl.fetchInspections(refresh: true),
+        child: historyCtrl.isLoading.value && historyCtrl.inspections.isEmpty
+            ? const Center(child: CircularProgressIndicator())
+            : historyCtrl.inspections.isEmpty
+                ? ListView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    children: [
+                      SizedBox(height: MediaQuery.of(context).size.height * 0.3),
+                      const Center(child: Text('Belum ada inspeksi aset')),
+                    ],
+                  )
+                : NotificationListener<ScrollNotification>(
+                    onNotification: (ScrollNotification scrollInfo) {
+                      if (!historyCtrl.isLoadingMore.value && 
+                          scrollInfo.metrics.pixels >= scrollInfo.metrics.maxScrollExtent - 50) {
+                        historyCtrl.loadMoreInspections();
+                      }
+                      return false;
+                    },
+                    child: ListView.builder(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      itemCount: historyCtrl.inspections.length + (historyCtrl.isLoadingMore.value ? 1 : 0),
+                      itemBuilder: (context, index) {
+                        if (index == historyCtrl.inspections.length) {
+                          return const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 16),
+                            child: Center(child: CircularProgressIndicator()),
+                          );
+                        }
+                        final inspection = historyCtrl.inspections[index];
+                        final roomName = inspection['room']?['name'] ?? 'Tanpa Ruangan';
+                        
+                        String dateStr = '';
+                        if (inspection['created_at'] != null) {
+                          try {
+                            final date = DateTime.parse(inspection['created_at']).toLocal();
+                            dateStr = "${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year} ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}";
+                          } catch (e) {
+                            dateStr = inspection['created_at'];
+                          }
+                        }
+                        
+                        return Card(
+                          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          child: ListTile(
+                            title: Text(roomName),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('$dateStr - Petugas: ${inspection['user']?['name'] ?? ''}'),
+                                if (inspection['notes'] != null && inspection['notes'].toString().isNotEmpty)
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 4.0),
+                                    child: Text(
+                                      '"${inspection['notes']}"',
+                                      style: const TextStyle(fontSize: 12, fontStyle: FontStyle.italic, color: Colors.grey),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                            leading: const CircleAvatar(
+                              backgroundColor: Colors.purple,
+                              child: Icon(Icons.inventory, color: Colors.white, size: 20),
+                            ),
+                            trailing: const Icon(Icons.chevron_right),
+                            onTap: () => Get.toNamed('/asset-inspection/detail', arguments: inspection['id']),
                           ),
                         );
                       },

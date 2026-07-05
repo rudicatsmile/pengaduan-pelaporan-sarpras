@@ -11,10 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('inspections', function (Blueprint $table) {
-            if (!Schema::hasColumn('inspections', 'notes')) {
-                $table->text('notes')->nullable()->after('description');
-            }
+        Schema::table('asset_inspections', function (Blueprint $table) {
+            $table->text('notes')->nullable()->after('room_id');
         });
     }
 
@@ -23,8 +21,9 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('inspections', function (Blueprint $table) {
+        Schema::table('asset_inspections', function (Blueprint $table) {
             $table->dropColumn('notes');
         });
     }
 };
+

@@ -13,4 +13,6 @@ abstract class Routes {
   static const INSPECTION = '/inspection';
   static const INSPECTION_FORM = '/inspection/form';
   static const INSPECTION_DETAIL = '/inspection/detail';
+  static const ASSET_INSPECTION_FORM = '/asset-inspection/form';
+  static const ASSET_INSPECTION_DETAIL = '/asset-inspection/detail';
 }

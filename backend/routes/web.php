@@ -61,6 +61,13 @@ Route::middleware('auth')->group(function () {
     Route::get('/inspections/{id}', [\App\Http\Controllers\Admin\InspectionController::class, 'show'])->name('inspections.show');
     Route::post('/inspections/{id}/notes', [\App\Http\Controllers\Admin\InspectionController::class, 'updateNotes'])->name('inspections.notes');
 
+    // Asset Inspection Routes
+    Route::get('/asset-inspections', [\App\Http\Controllers\Admin\AssetInspectionController::class, 'index'])->name('asset-inspections.index');
+    Route::get('/asset-inspections/create', [\App\Http\Controllers\Admin\AssetInspectionController::class, 'create'])->name('asset-inspections.create');
+    Route::post('/asset-inspections', [\App\Http\Controllers\Admin\AssetInspectionController::class, 'store'])->name('asset-inspections.store');
+    Route::get('/asset-inspections/get-assets', [\App\Http\Controllers\Admin\AssetInspectionController::class, 'getAssets'])->name('asset-inspections.get-assets');
+    Route::get('/asset-inspections/{id}', [\App\Http\Controllers\Admin\AssetInspectionController::class, 'show'])->name('asset-inspections.show');
+
     // Master Data Routes
     Route::resource('floors', \App\Http\Controllers\Admin\FloorController::class);
     Route::resource('rooms', \App\Http\Controllers\Admin\RoomController::class);

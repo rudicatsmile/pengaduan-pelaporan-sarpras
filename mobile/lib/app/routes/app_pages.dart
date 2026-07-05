@@ -23,6 +23,10 @@ import '../modules/task/task_detail_binding.dart';
 import '../modules/task/task_detail_view.dart';
 import '../modules/inspection/inspection_form_view.dart';
 import '../modules/inspection/inspection_detail_view.dart';
+import '../modules/asset_inspection/asset_inspection_form_view.dart';
+import '../modules/asset_inspection/asset_inspection_form_binding.dart';
+import '../modules/asset_inspection/asset_inspection_detail_view.dart';
+import '../modules/asset_inspection/asset_inspection_detail_binding.dart';
 
 part 'app_routes.dart';
 
@@ -92,6 +96,16 @@ class AppPages {
     GetPage(
       name: Routes.INSPECTION_DETAIL,
       page: () => const InspectionDetailView(),
+    ),
+    GetPage(
+      name: Routes.ASSET_INSPECTION_FORM,
+      page: () => const AssetInspectionFormView(),
+      binding: AssetInspectionFormBinding(),
+    ),
+    GetPage(
+      name: Routes.ASSET_INSPECTION_DETAIL,
+      page: () => const AssetInspectionDetailView(),
+      binding: AssetInspectionDetailBinding(),
     ),
   ];
 }

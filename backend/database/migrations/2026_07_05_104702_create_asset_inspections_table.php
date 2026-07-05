@@ -11,10 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('inspections', function (Blueprint $table) {
-            if (!Schema::hasColumn('inspections', 'notes')) {
-                $table->text('notes')->nullable()->after('description');
-            }
+        Schema::create('asset_inspections', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('room_id')->constrained('rooms')->onDelete('cascade');
+            $table->timestamps();
         });
     }
 
@@ -23,8 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('inspections', function (Blueprint $table) {
-            $table->dropColumn('notes');
-        });
+        Schema::dropIfExists('asset_inspections');
     }
 };

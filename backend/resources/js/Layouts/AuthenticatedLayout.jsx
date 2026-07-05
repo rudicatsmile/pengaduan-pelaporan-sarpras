@@ -62,6 +62,9 @@ export default function AuthenticatedLayout({ header, children }) {
                                             <Dropdown.Link href={route('inspections.index')}>
                                                 Laporan Kinerja
                                             </Dropdown.Link>
+                                            <Dropdown.Link href={route('asset-inspections.index')}>
+                                                Inspeksi Aset
+                                            </Dropdown.Link>
                                         </Dropdown.Content>
                                     </Dropdown>
                                 </div>
@@ -225,6 +228,7 @@ export default function AuthenticatedLayout({ header, children }) {
                             <div className="mt-1 space-y-1">
                                 <ResponsiveNavLink href={route('reports.index')} active={route().current('reports.*')} className="pl-8">Pengaduan</ResponsiveNavLink>
                                 <ResponsiveNavLink href={route('inspections.index')} active={route().current('inspections.*')} className="pl-8">Laporan Kinerja</ResponsiveNavLink>
+                                <ResponsiveNavLink href={route('asset-inspections.index')} active={route().current('asset-inspections.*')} className="pl-8">Inspeksi Aset</ResponsiveNavLink>
                             </div>
                         </div>
 

@@ -1,15 +1,18 @@
 import 'package:mobile/app/core/network/api_client.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../routes/app_pages.dart';
 import '../../core/services/settings_service.dart';
 
-class HomeController extends GetxController {
+class HomeController extends GetxController with GetSingleTickerProviderStateMixin {
   final currentIndex = 0.obs;
   final userRole = ''.obs;
   final userName = ''.obs;
   final isLoading = true.obs;
+  final historyTabIndex = 0.obs;
+  late TabController historyTabController;
 
   final  _dio = ApiClient.instance;
 
@@ -18,8 +21,15 @@ class HomeController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    historyTabController = TabController(length: 3, vsync: this);
     _fetchUser();
     _fetchSettings();
+  }
+
+  @override
+  void onClose() {
+    historyTabController.dispose();
+    super.onClose();
   }
 
   Future<void> _fetchSettings() async {
