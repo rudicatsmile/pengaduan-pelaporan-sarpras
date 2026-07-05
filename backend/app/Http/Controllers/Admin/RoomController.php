@@ -36,14 +36,20 @@ class RoomController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate(['name' => 'required|string|max:255']);
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'floor_id' => 'required|exists:floors,id'
+        ]);
         $room = Room::create($request->all());
         return redirect()->back()->with('message', 'Ruangan berhasil ditambahkan.');
     }
 
     public function update(Request $request, Room $room)
     {
-        $request->validate(['name' => 'required|string|max:255']);
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'floor_id' => 'required|exists:floors,id'
+        ]);
         $room->update($request->all());
         return redirect()->back()->with('message', 'Ruangan berhasil diubah.');
     }
