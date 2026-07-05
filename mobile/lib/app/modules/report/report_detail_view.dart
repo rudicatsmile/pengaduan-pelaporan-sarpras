@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'report_detail_controller.dart';
 
 class ReportDetailView extends GetView<ReportDetailController> {
@@ -330,8 +331,8 @@ class ReportDetailView extends GetView<ReportDetailController> {
                           itemCount: (data['attachments'] as List).length,
                           itemBuilder: (context, index) {
                             final att = data['attachments'][index];
-                            // Replace localhost to 192.168.27.177 for android emulator
-                            final url = att['file_path'].replaceAll('localhost', '192.168.27.177');
+                            // Replace localhost to STORAGE_BASE_URL for testing
+                            final url = att['file_path'].replaceAll('http://localhost:8000', dotenv.env['STORAGE_BASE_URL'] ?? 'http://127.0.0.1:8000');
                             return GestureDetector(
                               onTap: () => _showFullScreenImage(context, url),
                               child: Container(

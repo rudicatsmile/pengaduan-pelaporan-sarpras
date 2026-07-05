@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'task_detail_controller.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class TaskDetailView extends GetView<TaskDetailController> {
   const TaskDetailView({Key? key}) : super(key: key);
@@ -53,7 +54,7 @@ class TaskDetailView extends GetView<TaskDetailController> {
                     itemCount: (data['attachments'] as List).length,
                     itemBuilder: (context, index) {
                       final att = data['attachments'][index];
-                      final url = att['file_path'].replaceAll('localhost', '192.168.27.177');
+                      final url = att['file_path'].replaceAll('http://localhost:8000', dotenv.env['STORAGE_BASE_URL'] ?? 'http://127.0.0.1:8000');
                       return Padding(
                         padding: const EdgeInsets.only(right: 8.0),
                         child: Image.network(url, width: 200, fit: BoxFit.cover),

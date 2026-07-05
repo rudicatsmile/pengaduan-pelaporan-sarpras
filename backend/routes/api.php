@@ -49,6 +49,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/inspections', [\App\Http\Controllers\Api\InspectionController::class, 'store']);
     Route::get('/inspections/{id}', [\App\Http\Controllers\Api\InspectionController::class, 'show']);
     Route::post('/inspections/{id}/read', [\App\Http\Controllers\Api\InspectionController::class, 'markAsRead']);
+    Route::post('/inspections/{id}/notes', [\App\Http\Controllers\Api\InspectionController::class, 'updateNotes']);
 
     Route::get('/tasks', [\App\Http\Controllers\Api\TaskController::class, 'index']);
     Route::post('/tasks/{id}/process', [\App\Http\Controllers\Api\TaskController::class, 'process']);

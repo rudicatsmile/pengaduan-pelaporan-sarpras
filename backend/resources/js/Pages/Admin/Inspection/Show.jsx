@@ -1,8 +1,21 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
 import dayjs from 'dayjs';
 
 export default function Show({ auth, inspection }) {
+    const isAdmin = auth.user?.roles?.includes('admin') || auth.user?.roles?.includes('super_admin');
+    
+    const { data, setData, post, processing, errors } = useForm({
+        notes: inspection.notes || '',
+    });
+
+    const submitNotes = (e) => {
+        e.preventDefault();
+        post(route('inspections.notes', inspection.id), {
+            preserveScroll: true,
+        });
+    };
+
     return (
         <AuthenticatedLayout
             header={
@@ -62,6 +75,33 @@ export default function Show({ auth, inspection }) {
                                         />
                                     </div>
                                 ))}
+                            </div>
+                        )}
+                    </div>
+                    <div className="bg-white shadow-sm sm:rounded-lg p-6">
+                        <h3 className="text-lg font-medium text-gray-900 mb-4">Catatan Laporan Kinerja</h3>
+                        {isAdmin ? (
+                            <form onSubmit={submitNotes}>
+                                <textarea
+                                    className="w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm min-h-[100px]"
+                                    value={data.notes}
+                                    onChange={e => setData('notes', e.target.value)}
+                                    placeholder="Tambahkan catatan untuk inspeksi ini..."
+                                />
+                                {errors.notes && <div className="text-red-600 mt-1 text-sm">{errors.notes}</div>}
+                                <div className="mt-4 flex justify-end">
+                                    <button
+                                        type="submit"
+                                        disabled={processing}
+                                        className="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 focus:bg-gray-700 active:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150 disabled:opacity-50"
+                                    >
+                                        Simpan Catatan
+                                    </button>
+                                </div>
+                            </form>
+                        ) : (
+                            <div className="mt-2 text-sm text-gray-900 whitespace-pre-wrap bg-gray-50 p-4 rounded-md border border-gray-100 min-h-[50px]">
+                                {inspection.notes ? inspection.notes : <span className="text-gray-500 italic">Tidak ada catatan.</span>}
                             </div>
                         )}
                     </div>

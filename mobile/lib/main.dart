@@ -3,9 +3,11 @@ import 'package:get/get.dart';
 import 'app/routes/app_pages.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'app/core/services/settings_service.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: ".env");
   await Get.putAsync(() => SettingsService().init());
   runApp(
     GetMaterialApp(

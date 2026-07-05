@@ -4,6 +4,8 @@ import 'package:intl/intl.dart';
 import 'package:mobile/app/core/network/api_client.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
+import 'package:mobile/app/modules/home/home_controller.dart';
+import 'package:mobile/app/modules/inspection/inspection_controller.dart';
 
 class InspectionDetailView extends StatelessWidget {
   const InspectionDetailView({Key? key}) : super(key: key);
@@ -78,6 +80,69 @@ class InspectionDetailView extends StatelessWidget {
                   );
                 },
               ),
+            
+            const SizedBox(height: 24),
+            Text('Catatan Laporan Kinerja', style: context.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 12),
+            GetBuilder<HomeController>(
+              init: Get.find<HomeController>(),
+              builder: (homeCtrl) {
+                final isAdmin = homeCtrl.userRole.value == 'admin' || homeCtrl.userRole.value == 'super_admin';
+                final inspectionCtrl = Get.put(InspectionController());
+                final notesController = TextEditingController(text: inspection['notes'] ?? '');
+
+                if (isAdmin) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      TextField(
+                        controller: notesController,
+                        maxLines: 4,
+                        decoration: InputDecoration(
+                          hintText: 'Tambahkan catatan untuk inspeksi ini...',
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                          filled: true,
+                          fillColor: Colors.grey[50],
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Obx(() => ElevatedButton.icon(
+                            onPressed: inspectionCtrl.isUpdatingNotes.value 
+                                ? null 
+                                : () => inspectionCtrl.updateNotes(inspection['id'], notesController.text),
+                            icon: inspectionCtrl.isUpdatingNotes.value 
+                                ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)) 
+                                : const Icon(Icons.save),
+                            label: const Text('Simpan Catatan'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.teal,
+                              foregroundColor: Colors.white,
+                            ),
+                          )),
+                    ],
+                  );
+                } else {
+                  return Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[50],
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.grey[200]!),
+                    ),
+                    child: Text(
+                      (inspection['notes'] == null || inspection['notes'].toString().isEmpty) 
+                          ? 'Tidak ada catatan.' 
+                          : inspection['notes'].toString(),
+                      style: TextStyle(
+                        fontStyle: (inspection['notes'] == null || inspection['notes'].toString().isEmpty) ? FontStyle.italic : FontStyle.normal,
+                        color: (inspection['notes'] == null || inspection['notes'].toString().isEmpty) ? Colors.grey : Colors.black87,
+                      ),
+                    ),
+                  );
+                }
+              },
+            ),
           ],
         ),
       ),

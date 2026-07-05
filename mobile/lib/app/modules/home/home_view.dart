@@ -74,7 +74,7 @@ class HomeView extends GetView<HomeController> {
             const SizedBox(height: 20),
             ListTile(
               leading: const CircleAvatar(backgroundColor: Colors.teal, child: Icon(Icons.qr_code_scanner, color: Colors.white)),
-              title: const Text('Laporan Sarpras (via QR)'),
+              title: const Text('Pengaduan Sarpras (Via QR)'),
               subtitle: const Text('Scan QR Code pada fasilitas'),
               onTap: () {
                 Navigator.pop(context);
@@ -84,7 +84,7 @@ class HomeView extends GetView<HomeController> {
             const Divider(),
             ListTile(
               leading: const CircleAvatar(backgroundColor: Colors.orange, child: Icon(Icons.report, color: Colors.white)),
-              title: const Text('Pelaporan Umum'),
+              title: const Text('Pengaduan Umum'),
               subtitle: const Text('Lapor masalah tanpa QR'),
               onTap: () {
                 Navigator.pop(context);
@@ -94,7 +94,7 @@ class HomeView extends GetView<HomeController> {
             const Divider(),
             ListTile(
               leading: const CircleAvatar(backgroundColor: Colors.blue, child: Icon(Icons.assignment_turned_in, color: Colors.white)),
-              title: const Text('Inspeksi Sarpras'),
+              title: const Text('Laporan Kinerja'),
               subtitle: const Text('Laporan kondisi sarana prasarana'),
               onTap: () {
                 Navigator.pop(context);
@@ -462,7 +462,7 @@ class HomeView extends GetView<HomeController> {
               indicatorColor: Colors.teal,
               tabs: [
                 Tab(text: 'Pengaduan'),
-                Tab(text: 'Inspeksi'),
+                Tab(text: 'Laporan Kinerja'),
               ],
             ),
             Expanded(
@@ -645,14 +645,14 @@ class HomeView extends GetView<HomeController> {
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                     decoration: BoxDecoration(
-                                      color: inspection['is_read'] == 1 || inspection['is_read'] == true ? Colors.green[100] : Colors.red[100],
+                                      color: inspection['is_read'].toString() == '1' || inspection['is_read'] == true ? Colors.green[100] : Colors.red[100],
                                       borderRadius: BorderRadius.circular(8),
                                     ),
                                     child: Text(
-                                      inspection['is_read'] == 1 || inspection['is_read'] == true ? 'Sudah Dibaca' : 'Belum Dibaca',
+                                      inspection['is_read'].toString() == '1' || inspection['is_read'] == true ? 'Sudah Dibaca' : 'Belum Dibaca',
                                       style: TextStyle(
                                         fontSize: 10,
-                                        color: inspection['is_read'] == 1 || inspection['is_read'] == true ? Colors.green[800] : Colors.red[800],
+                                        color: inspection['is_read'].toString() == '1' || inspection['is_read'] == true ? Colors.green[800] : Colors.red[800],
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
@@ -661,7 +661,18 @@ class HomeView extends GetView<HomeController> {
                             ),
                             subtitle: Text(inspection['description'] ?? '', maxLines: 2, overflow: TextOverflow.ellipsis),
                             trailing: const Icon(Icons.chevron_right),
-                            onTap: () => Get.toNamed('/inspection/detail', arguments: inspection),
+                            onTap: () {
+                              final homeCtrl = Get.find<HomeController>();
+                              if (homeCtrl.userRole.value == 'admin' && (inspection['is_read'] == null || inspection['is_read'].toString() == '0' || inspection['is_read'] == false)) {
+                                inspectionCtrl.markAsRead(inspection['id']);
+                                final idx = inspectionCtrl.inspections.indexWhere((i) => i['id'] == inspection['id']);
+                                if (idx != -1) {
+                                  inspectionCtrl.inspections[idx]['is_read'] = 1;
+                                  inspectionCtrl.inspections.refresh();
+                                }
+                              }
+                              Get.toNamed('/inspection/detail', arguments: inspection);
+                            },
                           ),
                         );
                       },

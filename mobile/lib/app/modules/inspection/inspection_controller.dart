@@ -227,4 +227,39 @@ class InspectionController extends GetxController {
       isSubmitting.value = false;
     }
   }
+
+  Future<void> markAsRead(int id) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token');
+      await _dio.post(
+        '/inspections/$id/read',
+        options: dio.Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+    } catch (e) {
+      debugPrint('Gagal menandai inspeksi sebagai telah dibaca: $e');
+    }
+  }
+  final isUpdatingNotes = false.obs;
+
+  Future<void> updateNotes(int id, String notes) async {
+    isUpdatingNotes.value = true;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token');
+      final response = await _dio.post(
+        '/inspections/$id/notes',
+        data: {'notes': notes},
+        options: dio.Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+      if (response.statusCode == 200) {
+        Get.snackbar('Sukses', 'Catatan berhasil disimpan', backgroundColor: Colors.green, colorText: Colors.white);
+      }
+    } catch (e) {
+      Get.snackbar('Error', 'Gagal menyimpan catatan', backgroundColor: Colors.red, colorText: Colors.white);
+      debugPrint('Gagal menyimpan catatan: $e');
+    } finally {
+      isUpdatingNotes.value = false;
+    }
+  }
 }

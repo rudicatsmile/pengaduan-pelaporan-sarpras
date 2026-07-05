@@ -14,6 +14,12 @@ Route::get('/', function () {
     ]);
 });
 
+// Helper route for shared hosting to link storage
+Route::get('/symlink', function () {
+    \Illuminate\Support\Facades\Artisan::call('storage:link');
+    return 'Storage linked successfully!';
+});
+
 // Public Report Routes (Anonymous)
 Route::get('/p/{roomId}', [\App\Http\Controllers\GuestReportController::class, 'showForm'])->name('public.report.form');
 Route::post('/p/{roomId}', [\App\Http\Controllers\GuestReportController::class, 'store'])->name('public.report.store');
@@ -53,6 +59,7 @@ Route::middleware('auth')->group(function () {
     // Inspection Routes
     Route::get('/inspections', [\App\Http\Controllers\Admin\InspectionController::class, 'index'])->name('inspections.index');
     Route::get('/inspections/{id}', [\App\Http\Controllers\Admin\InspectionController::class, 'show'])->name('inspections.show');
+    Route::post('/inspections/{id}/notes', [\App\Http\Controllers\Admin\InspectionController::class, 'updateNotes'])->name('inspections.notes');
 
     // Master Data Routes
     Route::resource('rooms', \App\Http\Controllers\Admin\RoomController::class);

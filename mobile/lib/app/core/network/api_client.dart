@@ -4,6 +4,7 @@ import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:get/get.dart';
 import 'package:mobile/app/routes/app_pages.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class ApiClient {
   static final Logger _logger = Logger(
@@ -18,7 +19,7 @@ class ApiClient {
 
   static Dio get instance {
     final dio = Dio(BaseOptions(
-      baseUrl: 'http://192.168.27.177:8000/api',
+      baseUrl: dotenv.env['API_BASE_URL'] ?? 'http://127.0.0.1:8000/api',
       connectTimeout: const Duration(seconds: 15),
       receiveTimeout: const Duration(seconds: 15),
       headers: {'Accept': 'application/json'},

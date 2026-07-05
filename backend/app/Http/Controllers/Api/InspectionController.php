@@ -92,4 +92,26 @@ class InspectionController extends Controller
             'data' => $inspection
         ]);
     }
+
+    public function updateNotes(Request $request, $id)
+    {
+        $request->validate([
+            'notes' => 'nullable|string'
+        ]);
+
+        $inspection = Inspection::findOrFail($id);
+        $user = $request->user();
+
+        if (!$user->hasAnyRole(['super_admin', 'admin'])) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $inspection->update(['notes' => $request->notes]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Catatan berhasil diperbarui.',
+            'data' => $inspection
+        ]);
+    }
 }

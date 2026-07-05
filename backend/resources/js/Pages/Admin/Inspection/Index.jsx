@@ -43,7 +43,7 @@ export default function Index({ auth, inspections }) {
                                                     <td className="px-6 py-4">{inspection.user?.name}</td>
                                                     <td className="px-6 py-4">{inspection.room?.name}</td>
                                                     <td className="px-6 py-4">
-                                                        {inspection.is_read ? (
+                                                        {Number(inspection.is_read) === 1 ? (
                                                             <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
                                                                 Sudah Dibaca
                                                             </span>
