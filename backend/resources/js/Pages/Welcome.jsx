@@ -94,10 +94,14 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
                                 Sistem pengaduan sarana prasarana gedung yang terintegrasi. Bantu kami menjaga kenyamanan lingkungan kerja Anda dengan satu aplikasi.
                             </p>
                             <div className="flex flex-col sm:flex-row gap-4 pt-4 justify-center md:justify-start">
-                                <button className="bg-primary text-on-primary px-8 py-4 rounded-xl font-headline-sm flex items-center justify-center gap-2 shadow-lg shadow-primary/20 hover:bg-primary-container transition-all active:scale-95">
+                                <a 
+                                    href="/apk/sigap.apk" 
+                                    download="SiGAP.apk"
+                                    className="bg-primary text-on-primary px-8 py-4 rounded-xl font-headline-sm flex items-center justify-center gap-2 shadow-lg shadow-primary/20 hover:bg-primary-container transition-all active:scale-95"
+                                >
                                     <span className="material-symbols-outlined">download</span>
                                     Unduh Aplikasi
-                                </button>
+                                </a>
                                 {auth?.user ? (
                                     <Link href={route('dashboard')} className="bg-surface-container-highest text-on-surface px-8 py-4 rounded-xl font-headline-sm border border-outline-variant flex items-center justify-center gap-2 hover:bg-surface-container-high transition-all active:scale-95">
                                         <span className="material-symbols-outlined">admin_panel_settings</span>
