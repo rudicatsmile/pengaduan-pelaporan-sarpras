@@ -62,6 +62,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/inspections/{id}/notes', [\App\Http\Controllers\Admin\InspectionController::class, 'updateNotes'])->name('inspections.notes');
 
     // Master Data Routes
+    Route::resource('floors', \App\Http\Controllers\Admin\FloorController::class);
     Route::resource('rooms', \App\Http\Controllers\Admin\RoomController::class);
     Route::get('rooms/{room}/qr', [\App\Http\Controllers\Admin\RoomController::class, 'generateQr'])->name('rooms.qr');
     Route::resource('categories', \App\Http\Controllers\Admin\CategoryController::class);

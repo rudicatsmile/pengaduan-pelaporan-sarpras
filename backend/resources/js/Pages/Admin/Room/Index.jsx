@@ -1,43 +1,41 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, useForm } from '@inertiajs/react';
+import { Head, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 
-export default function Index({ rooms }) {
-    const [editing, setEditing] = useState(null);
-    const { data, setData, post, put, delete: destroy, processing, reset, errors } = useForm({
-        name: '',
-    });
+export default function Index({ rooms, buildings, filters }) {
+    const { delete: destroy } = useForm();
 
-    const submit = (e) => {
-        e.preventDefault();
-        if (editing) {
-            put(route('rooms.update', editing.id), {
-                onSuccess: () => {
-                    setEditing(null);
-                    reset();
-                },
-            });
-        } else {
-            post(route('rooms.store'), {
-                onSuccess: () => reset(),
-            });
-        }
+    const [selectedBuilding, setSelectedBuilding] = useState(filters?.building_id || '');
+    const [selectedFloor, setSelectedFloor] = useState(filters?.floor_id || '');
+
+    const selectedBuildingObj = buildings.find(b => b.id.toString() === selectedBuilding.toString());
+    const floors = selectedBuildingObj ? selectedBuildingObj.floors : [];
+
+    const handleBuildingChange = (e) => {
+        const buildingId = e.target.value;
+        setSelectedBuilding(buildingId);
+        setSelectedFloor('');
+
+        router.get(route('rooms.index'), { building_id: buildingId, floor_id: '' }, {
+            preserveState: true,
+            replace: true
+        });
     };
 
-    const handleEdit = (room) => {
-        setEditing(room);
-        setData('name', room.name);
+    const handleFloorChange = (e) => {
+        const floorId = e.target.value;
+        setSelectedFloor(floorId);
+
+        router.get(route('rooms.index'), { building_id: selectedBuilding, floor_id: floorId }, {
+            preserveState: true,
+            replace: true
+        });
     };
 
     const handleDelete = (id) => {
         if (confirm('Yakin ingin menghapus ruangan ini?')) {
             destroy(route('rooms.destroy', id));
         }
-    };
-
-    const cancelEdit = () => {
-        setEditing(null);
-        reset();
     };
 
     return (
@@ -47,84 +45,85 @@ export default function Index({ rooms }) {
             <Head title="Ruangan" />
 
             <div className="py-12">
-                <div className="mx-auto max-w-7xl sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {/* Form Section */}
-                    <div className="md:col-span-1">
-                        <div className="bg-white p-6 shadow-sm sm:rounded-lg">
-                            <h3 className="font-bold text-lg mb-4">{editing ? 'Edit Ruangan' : 'Tambah Ruangan'}</h3>
-                            <form onSubmit={submit}>
-                                <div className="mb-4">
-                                    <label className="block text-sm font-medium text-gray-700">Nama Ruangan/Lokasi</label>
-                                    <input
-                                        type="text"
-                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                                        value={data.name}
-                                        onChange={e => setData('name', e.target.value)}
-                                        required
-                                    />
-                                    {errors.name && <div className="text-red-500 text-sm mt-1">{errors.name}</div>}
-                                </div>
-                                <div className="flex space-x-2">
-                                    <button
-                                        type="submit"
-                                        disabled={processing}
-                                        className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50"
-                                    >
-                                        {editing ? 'Simpan' : 'Tambah'}
-                                    </button>
-                                    {editing && (
-                                        <button
-                                            type="button"
-                                            onClick={cancelEdit}
-                                            className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300"
-                                        >
-                                            Batal
-                                        </button>
-                                    )}
-                                </div>
-                            </form>
+                <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
+                    
+                    {/* Filter Section */}
+                    <div className="bg-white p-6 shadow-sm sm:rounded-lg mb-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700">Filter Gedung</label>
+                                <select
+                                    value={selectedBuilding}
+                                    onChange={handleBuildingChange}
+                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                >
+                                    <option value="">-- Semua Gedung --</option>
+                                    {buildings.map(building => (
+                                        <option key={building.id} value={building.id}>
+                                            {building.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700">Filter Lantai</label>
+                                <select
+                                    value={selectedFloor}
+                                    onChange={handleFloorChange}
+                                    disabled={!selectedBuilding}
+                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 disabled:opacity-50 disabled:bg-gray-100"
+                                >
+                                    <option value="">-- Semua Lantai --</option>
+                                    {floors.map(floor => (
+                                        <option key={floor.id} value={floor.id}>
+                                            {floor.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
                         </div>
                     </div>
 
                     {/* Table Section */}
-                    <div className="md:col-span-2">
-                        <div className="bg-white shadow-sm sm:rounded-lg overflow-hidden">
-                            <div className="p-6">
-                                <table className="w-full text-left border-collapse">
-                                    <thead>
-                                        <tr>
-                                            <th className="border-b p-4">ID</th>
-                                            <th className="border-b p-4">Nama Ruangan</th>
-                                            <th className="border-b p-4">Aksi</th>
+                    <div className="bg-white shadow-sm sm:rounded-lg overflow-hidden">
+                        <div className="p-6">
+                            <table className="w-full text-left border-collapse">
+                                <thead>
+                                    <tr>
+                                        <th className="border-b p-4">ID</th>
+                                        <th className="border-b p-4">Gedung / Lantai</th>
+                                        <th className="border-b p-4">Nama Ruangan</th>
+                                        <th className="border-b p-4">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {rooms.map((room) => (
+                                        <tr key={room.id} className="hover:bg-gray-50">
+                                            <td className="border-b p-4">#{room.id}</td>
+                                            <td className="border-b p-4">
+                                                {room.floor?.building?.name} - {room.floor?.name}
+                                            </td>
+                                            <td className="border-b p-4">{room.name}</td>
+                                            <td className="border-b p-4 space-x-3">
+                                                <a
+                                                    href={route('rooms.qr', room.id)}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-green-600 hover:underline"
+                                                >
+                                                    Cetak QR (PDF)
+                                                </a>
+                                                <button onClick={() => handleDelete(room.id)} className="text-red-600 hover:underline">Hapus</button>
+                                            </td>
                                         </tr>
-                                    </thead>
-                                    <tbody>
-                                        {rooms.map((room) => (
-                                            <tr key={room.id} className="hover:bg-gray-50">
-                                                <td className="border-b p-4">#{room.id}</td>
-                                                <td className="border-b p-4">{room.name}</td>
-                                                <td className="border-b p-4 space-x-3">
-                                                    <a
-                                                        href={route('rooms.qr', room.id)}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="text-green-600 hover:underline"
-                                                    >
-                                                        Cetak QR (PDF)
-                                                    </a>
-                                                    <button onClick={() => handleEdit(room)} className="text-blue-600 hover:underline">Edit</button>
-                                                    <button onClick={() => handleDelete(room.id)} className="text-red-600 hover:underline">Hapus</button>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                        {rooms.length === 0 && (
-                                            <tr>
-                                                <td colSpan="3" className="text-center p-4">Belum ada ruangan</td>
-                                            </tr>
-                                        )}
-                                    </tbody>
-                                </table>
-                            </div>
+                                    ))}
+                                    {rooms.length === 0 && (
+                                        <tr>
+                                            <td colSpan="4" className="text-center p-4">Belum ada ruangan</td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>

@@ -12,7 +12,7 @@ class ReportController extends Controller
 {
     public function index()
     {
-        $reports = Report::with(['user', 'category', 'room'])->latest()->get();
+        $reports = Report::with(['user', 'category', 'room.floor.building'])->latest()->get();
         return Inertia::render('Admin/Report/Index', [
             'reports' => $reports
         ]);

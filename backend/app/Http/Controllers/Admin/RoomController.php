@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Room;
+use App\Models\Building;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
@@ -11,10 +12,25 @@ use PDF; // From barryvdh/laravel-dompdf
 
 class RoomController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $buildingId = $request->input('building_id');
+        $floorId = $request->input('floor_id');
+
+        $roomsQuery = Room::with(['floor.building']);
+
+        if ($floorId) {
+            $roomsQuery->where('floor_id', $floorId);
+        } elseif ($buildingId) {
+            $roomsQuery->whereHas('floor', function ($q) use ($buildingId) {
+                $q->where('building_id', $buildingId);
+            });
+        }
+
         return Inertia::render('Admin/Room/Index', [
-            'rooms' => Room::all()
+            'rooms' => $roomsQuery->get(),
+            'buildings' => Building::with('floors')->get(),
+            'filters' => $request->only(['building_id', 'floor_id'])
         ]);
     }
 

@@ -80,7 +80,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                             <span className="inline-flex rounded-md h-full items-center">
                                                 <button
                                                     type="button"
-                                                    className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium leading-5 transition duration-150 ease-in-out focus:outline-none h-16 ${route().current('rooms.*') || route().current('categories.*') || route().current('users.*') ? 'border-indigo-400 text-gray-900 focus:border-indigo-700' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 focus:text-gray-700 focus:border-gray-300'}`}
+                                                    className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium leading-5 transition duration-150 ease-in-out focus:outline-none h-16 ${route().current('floors.*') || route().current('rooms.*') || route().current('categories.*') || route().current('users.*') ? 'border-indigo-400 text-gray-900 focus:border-indigo-700' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 focus:text-gray-700 focus:border-gray-300'}`}
                                                 >
                                                     Master Data
                                                     <svg className="ms-1 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
@@ -91,6 +91,9 @@ export default function AuthenticatedLayout({ header, children }) {
                                         </Dropdown.Trigger>
 
                                         <Dropdown.Content>
+                                            <Dropdown.Link href={route('floors.index')}>
+                                                Lantai
+                                            </Dropdown.Link>
                                             <Dropdown.Link href={route('rooms.index')}>
                                                 Ruangan
                                             </Dropdown.Link>
@@ -235,6 +238,7 @@ export default function AuthenticatedLayout({ header, children }) {
                         <div className="pt-2 pb-1 border-t border-gray-200">
                             <div className="px-4 font-medium text-base text-gray-800">Master Data</div>
                             <div className="mt-1 space-y-1">
+                                <ResponsiveNavLink href={route('floors.index')} active={route().current('floors.*')} className="pl-8">Lantai</ResponsiveNavLink>
                                 <ResponsiveNavLink href={route('rooms.index')} active={route().current('rooms.*')} className="pl-8">Ruangan</ResponsiveNavLink>
                                 <ResponsiveNavLink href={route('categories.index')} active={route().current('categories.*')} className="pl-8">Kategori</ResponsiveNavLink>
                                 <ResponsiveNavLink href={route('users.index')} active={route().current('users.*')} className="pl-8">User</ResponsiveNavLink>
