@@ -30,14 +30,14 @@
 </head>
 <body>
     <div class="container">
-        <h1>LAPOR KERUSAKAN</h1>
-        <h2>Ruangan: {{ $room->name }}</h2>
+        <!-- <h1>LAPOR KERUSAKAN</h1> -->
+        <h2>{{ $room->name }}</h2>
         
         <div class="qr-image">
             <img src="data:image/svg+xml;base64,{{ $qrCode }}" alt="QR Code">
         </div>
         
-        <p>Scan QR Code ini melalui aplikasi pelaporan untuk melapor.</p>
+        <p>Scan QR Code ini melalui aplikasi {{ $appName }}.</p>
     </div>
 </body>
 </html>

@@ -15,6 +15,10 @@ class AssetInspectionFormController extends GetxController {
   final isLoadingAssets = false.obs;
   final isSubmitting = false.obs;
 
+  // Scan Mode state
+  final isScanMode = false.obs;
+  final scannedRoomName = ''.obs;
+
   final buildings = <Map<String, dynamic>>[].obs;
   final floors = <Map<String, dynamic>>[].obs;
   final rooms = <Map<String, dynamic>>[].obs;
@@ -30,7 +34,37 @@ class AssetInspectionFormController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    _fetchBuildings();
+    final roomCode = Get.parameters['room_code'];
+    if (roomCode != null && roomCode.isNotEmpty) {
+      isScanMode.value = true;
+      _fetchRoomByCode(roomCode);
+    } else {
+      _fetchBuildings();
+    }
+  }
+
+  Future<void> _fetchRoomByCode(String code) async {
+    isLoadingRooms.value = true;
+    try {
+      final response = await _dio.get('/rooms/$code');
+      if (response.statusCode == 200) {
+        final data = response.data['data'];
+        selectedRoomId.value = data['id'];
+        
+        String buildingName = data['floor']?['building']?['name'] ?? '';
+        String floorName = data['floor']?['name'] ?? '';
+        String locationText = buildingName.isNotEmpty ? ' ($floorName - $buildingName)' : '';
+        
+        scannedRoomName.value = '${data['name']}$locationText';
+        await fetchAssets(data['id']);
+      }
+    } catch (e) {
+      Get.snackbar('Error', 'Ruangan tidak ditemukan atau kode QR tidak valid',
+          backgroundColor: Colors.red, colorText: Colors.white);
+      Get.back();
+    } finally {
+      isLoadingRooms.value = false;
+    }
   }
 
   Future<void> _fetchBuildings() async {

@@ -30,9 +30,9 @@ class RoomController extends Controller
     {
         if (str_starts_with($code, 'ROOM:')) {
             $id = str_replace('ROOM:', '', $code);
-            $room = Room::find($id);
+            $room = Room::with('floor.building')->find($id);
         } else {
-            $room = Room::where('code', $code)->first();
+            $room = Room::with('floor.building')->where('code', $code)->first();
         }
 
         if (!$room) {

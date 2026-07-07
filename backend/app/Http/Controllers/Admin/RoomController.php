@@ -68,8 +68,15 @@ class RoomController extends Controller
         // Generate QR code image as base64 string
         $qrCode = base64_encode(QrCode::format('svg')->size(300)->generate($qrData));
 
+        // Get application name from settings
+        $appName = \App\Models\Setting::where('key', 'app_name')->value('value') ?? 'Pengaduan Sarpras';
+
         // Use PDF to render it beautifully
-        $pdf = PDF::loadView('pdf.room_qr', ['room' => $room, 'qrCode' => $qrCode]);
+        $pdf = PDF::loadView('pdf.room_qr', [
+            'room' => $room,
+            'qrCode' => $qrCode,
+            'appName' => $appName
+        ]);
         
         return $pdf->download('QR_Ruangan_' . $room->name . '.pdf');
     }

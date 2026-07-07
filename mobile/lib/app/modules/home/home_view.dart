@@ -111,12 +111,49 @@ class HomeView extends GetView<HomeController> {
               subtitle: const Text('Inspeksi keberadaan dan kondisi aset'),
               onTap: () {
                 Navigator.pop(context);
-                Get.toNamed('/asset-inspection/form');
+                _showAssetInspectionMethodSheet(context);
               },
             ),
           ],
         ),
       ),
+      ),
+    );
+  }
+
+  void _showAssetInspectionMethodSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (context) => Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Metode Inspeksi Aset', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 20),
+            ListTile(
+              leading: const CircleAvatar(backgroundColor: Colors.blue, child: Icon(Icons.qr_code_scanner, color: Colors.white)),
+              title: const Text('Scan QR Ruangan'),
+              subtitle: const Text('Inspeksi cepat dengan scan barcode ruangan'),
+              onTap: () {
+                Navigator.pop(context);
+                Get.toNamed('/report/qr', arguments: {'destination': '/asset-inspection/form'});
+              },
+            ),
+            const Divider(),
+            ListTile(
+              leading: const CircleAvatar(backgroundColor: Colors.orange, child: Icon(Icons.list_alt, color: Colors.white)),
+              title: const Text('Pilih Manual'),
+              subtitle: const Text('Pilih gedung dan lantai secara manual'),
+              onTap: () {
+                Navigator.pop(context);
+                Get.toNamed('/asset-inspection/form');
+              },
+            ),
+          ],
+        ),
       ),
     );
   }

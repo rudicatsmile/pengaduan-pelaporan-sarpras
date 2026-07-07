@@ -24,68 +24,97 @@ class AssetInspectionFormView extends GetView<AssetInspectionFormController> {
               ),
               const SizedBox(height: 20),
 
-              // Gedung Dropdown
-              Obx(() => DropdownButtonFormField<int>(
-                isExpanded: true,
-                decoration: const InputDecoration(
-                  labelText: 'Pilih Gedung',
-                  border: OutlineInputBorder(),
-                ),
-                value: controller.selectedBuildingId.value,
-                items: controller.buildings.map((b) {
-                  return DropdownMenuItem<int>(
-                    value: b['id'],
-                    child: Text(b['name']),
+              Obx(() {
+                if (controller.isScanMode.value) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Ruangan Terpilih', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
+                      const SizedBox(height: 8),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.blue.shade50,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.blue.shade200),
+                        ),
+                        child: Text(
+                          controller.scannedRoomName.value,
+                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue),
+                        ),
+                      ),
+                    ],
                   );
-                }).toList(),
-                onChanged: (val) {
-                  if (val != null) controller.fetchFloors(val);
-                },
-              )),
-              const SizedBox(height: 16),
+                }
 
-              // Lantai Dropdown
-              Obx(() => DropdownButtonFormField<int>(
-                isExpanded: true,
-                decoration: const InputDecoration(
-                  labelText: 'Pilih Lantai',
-                  border: OutlineInputBorder(),
-                ),
-                value: controller.selectedFloorId.value,
-                items: controller.floors.map((f) {
-                  return DropdownMenuItem<int>(
-                    value: f['id'],
-                    child: Text(f['name']),
-                  );
-                }).toList(),
-                onChanged: controller.selectedBuildingId.value == null 
-                  ? null 
-                  : (val) {
-                    if (val != null) controller.fetchRooms(val);
-                  },
-              )),
-              const SizedBox(height: 16),
+                return Column(
+                  children: [
+                    // Gedung Dropdown
+                    DropdownButtonFormField<int>(
+                      isExpanded: true,
+                      decoration: const InputDecoration(
+                        labelText: 'Pilih Gedung',
+                        border: OutlineInputBorder(),
+                      ),
+                      value: controller.selectedBuildingId.value,
+                      items: controller.buildings.map((b) {
+                        return DropdownMenuItem<int>(
+                          value: b['id'],
+                          child: Text(b['name']),
+                        );
+                      }).toList(),
+                      onChanged: (val) {
+                        if (val != null) controller.fetchFloors(val);
+                      },
+                    ),
+                    const SizedBox(height: 16),
 
-              // Ruangan Dropdown
-              Obx(() => DropdownButtonFormField<int>(
-                isExpanded: true,
-                decoration: const InputDecoration(
-                  labelText: 'Pilih Ruangan',
-                  border: OutlineInputBorder(),
-                ),
-                value: controller.selectedRoomId.value,
-                items: controller.rooms.map((r) {
-                  return DropdownMenuItem<int>(
-                    value: r['id'],
-                    child: Text(r['name']),
-                  );
-                }).toList(),
-                onChanged: controller.selectedFloorId.value == null 
-                  ? null 
-                  : (val) {
-                    if (val != null) controller.fetchAssets(val);
-                  },
-              )),
+                    // Lantai Dropdown
+                    DropdownButtonFormField<int>(
+                      isExpanded: true,
+                      decoration: const InputDecoration(
+                        labelText: 'Pilih Lantai',
+                        border: OutlineInputBorder(),
+                      ),
+                      value: controller.selectedFloorId.value,
+                      items: controller.floors.map((f) {
+                        return DropdownMenuItem<int>(
+                          value: f['id'],
+                          child: Text(f['name']),
+                        );
+                      }).toList(),
+                      onChanged: controller.selectedBuildingId.value == null 
+                        ? null 
+                        : (val) {
+                          if (val != null) controller.fetchRooms(val);
+                        },
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Ruangan Dropdown
+                    DropdownButtonFormField<int>(
+                      isExpanded: true,
+                      decoration: const InputDecoration(
+                        labelText: 'Pilih Ruangan',
+                        border: OutlineInputBorder(),
+                      ),
+                      value: controller.selectedRoomId.value,
+                      items: controller.rooms.map((r) {
+                        return DropdownMenuItem<int>(
+                          value: r['id'],
+                          child: Text(r['name']),
+                        );
+                      }).toList(),
+                      onChanged: controller.selectedFloorId.value == null 
+                        ? null 
+                        : (val) {
+                          if (val != null) controller.fetchAssets(val);
+                        },
+                    ),
+                  ],
+                );
+              }),
               const SizedBox(height: 24),
 
               // Aset List

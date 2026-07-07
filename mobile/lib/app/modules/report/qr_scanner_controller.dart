@@ -21,7 +21,11 @@ class QRScannerController extends GetxController {
           roomCode = 'ROOM:$id';
         }
 
-        Get.offNamed('/report/form', parameters: {'room_code': roomCode ?? ''});
+        // Read destination from arguments, default to /report/form
+        final args = Get.arguments as Map<String, dynamic>? ?? {};
+        final destination = args['destination'] ?? '/report/form';
+
+        Get.offNamed(destination, parameters: {'room_code': roomCode ?? ''});
         break;
       }
     }
