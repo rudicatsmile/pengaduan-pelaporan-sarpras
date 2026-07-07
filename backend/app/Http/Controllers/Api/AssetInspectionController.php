@@ -91,7 +91,7 @@ class AssetInspectionController extends Controller
                     'asset_id' => $asset['asset_id'],
                     'asset_name' => $asset['asset_name'],
                     'is_present' => $asset['is_present'],
-                    'condition' => $asset['is_present'] ? $asset['condition'] : null,
+                    'condition' => $asset['is_present'] ? ($asset['condition'] ?? 'baik') : 'baik',
                     'notes' => $asset['notes'] ?? null,
                 ]);
             }
