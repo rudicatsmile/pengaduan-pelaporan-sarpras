@@ -87,17 +87,17 @@ class LandingView extends GetView<LandingController> {
               const SizedBox(height: 40),
               
               // App Title & Tagline
-              Text(
-                'Sistem Pelaporan Sarpras',
+              Obx(() => Text(
+                SettingsService.to.appName.value,
                 textAlign: TextAlign.center,
                 style: context.textTheme.headlineMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: const Color(0xFF1F2937),
                 ),
-              ),
+              )),
               const SizedBox(height: 16),
               Text(
-                'Layanan untuk melaporkan fasilitas dan sarana prasarana dengan cepat dan mudah.',
+                'Sistem Informasi Pelaporan Gedung dan Prasarana',
                 textAlign: TextAlign.center,
                 style: context.textTheme.bodyLarge?.copyWith(
                   color: const Color(0xFF6B7280),

@@ -45,7 +45,7 @@ class SplashView extends GetView<SplashController> {
             )),
             const SizedBox(height: 10),
             Text(
-              'Sistem Pelaporan Sarana & Prasarana',
+              'Sistem Informasi Pelaporan Gedung dan Prasarana',
               style: context.textTheme.titleMedium?.copyWith(
                 color: context.theme.colorScheme.onPrimary.withOpacity(0.8),
               ),

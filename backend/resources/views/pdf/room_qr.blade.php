@@ -37,7 +37,7 @@
             <img src="data:image/svg+xml;base64,{{ $qrCode }}" alt="QR Code">
         </div>
         
-        <p>Scan QR Code ini melalui aplikasi {{ $appName }}.</p>
+        <p>Scan QR Code ini melalui aplikasi {{ $appName ?? (\App\Models\Setting::where('key', 'app_name')->value('value') ?? 'SIGAP') }}.</p>
     </div>
 </body>
 </html>

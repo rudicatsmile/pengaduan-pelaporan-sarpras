@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { Head, Link } from '@inertiajs/react';
 
 export default function Welcome({ auth, laravelVersion, phpVersion }) {
-    
+
     useEffect(() => {
         // Simple reveal on scroll effect
         const observerOptions = {
@@ -40,7 +40,7 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', handleSmoothScroll);
         });
-        
+
         return () => {
             observer.disconnect();
             document.querySelectorAll('a[href^="#"]').forEach(anchor => {
@@ -51,12 +51,12 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
 
     return (
         <div className="overflow-x-hidden bg-background text-on-background font-body-md">
-            <Head title="SiGAP - Sistem Pelaporan Fasilitas Gedung" />
-            
+            <Head title="SIGAP - Sistem Informasi Pelaporan Gedung dan Prasarana" />
+
             {/* TopNavBar */}
             <header className="bg-surface/80 backdrop-blur-md fixed top-0 w-full z-50 border-b border-outline-variant/30 shadow-sm h-16">
                 <nav className="flex justify-between items-center h-full px-margin-mobile md:px-gutter max-w-container-max mx-auto">
-                    <div className="font-headline-md text-headline-md font-bold text-primary">SiGAP</div>
+                    <div className="font-headline-md text-headline-md font-bold text-primary">SIGAP</div>
                     {/* Desktop Links */}
                     <div className="hidden md:flex items-center gap-stack-lg">
                         <a className="text-primary border-b-2 border-primary pb-1 font-label-md text-label-md transition-colors duration-200" href="#hero">Beranda</a>
@@ -94,8 +94,8 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
                                 Sistem pengaduan sarana prasarana gedung yang terintegrasi. Bantu kami menjaga kenyamanan lingkungan kerja Anda dengan satu aplikasi.
                             </p>
                             <div className="flex flex-col sm:flex-row gap-4 pt-4 justify-center md:justify-start">
-                                <a 
-                                    href="/apk/sigap.apk" 
+                                <a
+                                    href="/apk/sigap.apk"
                                     download="SiGAP.apk"
                                     className="bg-primary text-on-primary px-8 py-4 rounded-xl font-headline-sm flex items-center justify-center gap-2 shadow-lg shadow-primary/20 hover:bg-primary-container transition-all active:scale-95"
                                 >
@@ -139,7 +139,7 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
                 <section className="bg-white py-section-gap" id="how-it-works">
                     <div className="px-margin-mobile md:px-gutter max-w-container-max mx-auto">
                         <div className="text-center max-w-2xl mx-auto mb-16 space-y-4">
-                            <h2 className="font-headline-md text-headline-md md:text-[36px] text-on-background">Alur Kerja SiGAP</h2>
+                            <h2 className="font-headline-md text-headline-md md:text-[36px] text-on-background">Alur Kerja SIGAP</h2>
                             <p className="font-body-md text-body-md text-on-surface-variant">Laporkan kerusakan hanya dalam hitungan detik. Tim teknisi kami akan segera menanggapi setiap laporan Anda.</p>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-12 relative">
@@ -180,7 +180,7 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
                 <section className="py-section-gap px-margin-mobile md:px-gutter max-w-container-max mx-auto" id="features">
                     <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-4">
                         <div className="max-w-xl">
-                            <h2 className="font-headline-md text-[32px] text-on-background mb-4">Fitur Utama SiGAP</h2>
+                            <h2 className="font-headline-md text-[32px] text-on-background mb-4">Fitur Utama SIGAP</h2>
                             <p className="font-body-md text-body-md text-on-surface-variant">Kami menyediakan alat yang dibutuhkan untuk transparansi fasilitas publik.</p>
                         </div>
                         <a className="text-primary font-label-md flex items-center gap-2 hover:underline" href="#">Lihat Semua Fitur <span className="material-symbols-outlined">arrow_forward</span></a>
@@ -266,9 +266,9 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
             <footer className="bg-surface-container-lowest border-t border-outline-variant w-full py-stack-lg">
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-gutter px-margin-mobile md:px-gutter max-w-container-max mx-auto">
                     <div className="md:col-span-12 space-y-4 text-center md:text-left">
-                        <div className="font-headline-sm text-headline-sm font-bold text-primary">SiGAP</div>
+                        <div className="font-headline-sm text-headline-sm font-bold text-primary">SIGAP</div>
                         <p className="font-body-md text-body-md text-on-surface-variant">
-                            © {new Date().getFullYear()} SiGAP. Accountability, efficiency, and transparency in facility management.
+                            © {new Date().getFullYear()} SIGAP. Accountability, efficiency, and transparency in facility management.
                         </p>
                     </div>
                 </div>
