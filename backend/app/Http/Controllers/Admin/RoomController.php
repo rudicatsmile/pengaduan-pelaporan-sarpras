@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Room;
 use App\Models\Building;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
@@ -17,7 +18,7 @@ class RoomController extends Controller
         $buildingId = $request->input('building_id');
         $floorId = $request->input('floor_id');
 
-        $roomsQuery = Room::with(['floor.building']);
+        $roomsQuery = Room::with(['floor.building', 'assignedUsers']);
 
         if ($floorId) {
             $roomsQuery->where('floor_id', $floorId);
@@ -30,6 +31,7 @@ class RoomController extends Controller
         return Inertia::render('Admin/Room/Index', [
             'rooms' => $roomsQuery->get(),
             'buildings' => Building::with('floors')->get(),
+            'officers' => User::role('petugas')->get(),
             'filters' => $request->only(['building_id', 'floor_id'])
         ]);
     }
@@ -38,9 +40,24 @@ class RoomController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'floor_id' => 'required|exists:floors,id'
+            'floor_id' => 'required|exists:floors,id',
+            'room_type' => 'required|in:general,toilet',
+            'inspection_interval' => 'required_if:room_type,toilet|integer|min:1',
+            'assigned_users' => 'nullable|array',
+            'assigned_users.*' => 'exists:users,id',
         ]);
-        $room = Room::create($request->all());
+        
+        $data = $request->all();
+        if ($request->input('room_type') === 'general') {
+            $data['inspection_interval'] = 3;
+        }
+        
+        $room = Room::create($data);
+        if ($request->input('room_type') === 'toilet') {
+            $room->assignedUsers()->sync($request->input('assigned_users', []));
+        } else {
+            $room->assignedUsers()->sync([]);
+        }
         return redirect()->back()->with('message', 'Ruangan berhasil ditambahkan.');
     }
 
@@ -48,9 +65,24 @@ class RoomController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'floor_id' => 'required|exists:floors,id'
+            'floor_id' => 'required|exists:floors,id',
+            'room_type' => 'required|in:general,toilet',
+            'inspection_interval' => 'required_if:room_type,toilet|integer|min:1',
+            'assigned_users' => 'nullable|array',
+            'assigned_users.*' => 'exists:users,id',
         ]);
-        $room->update($request->all());
+        
+        $data = $request->all();
+        if ($request->input('room_type') === 'general') {
+            $data['inspection_interval'] = 3;
+        }
+        
+        $room->update($data);
+        if ($request->input('room_type') === 'toilet') {
+            $room->assignedUsers()->sync($request->input('assigned_users', []));
+        } else {
+            $room->assignedUsers()->sync([]);
+        }
         return redirect()->back()->with('message', 'Ruangan berhasil diubah.');
     }
 
