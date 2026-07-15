@@ -19,6 +19,7 @@ class InspectionController extends GetxController {
   final selectedBuilding = Rxn<int>();
   final selectedFloor = Rxn<int>();
   final selectedRoomId = Rxn<int>();
+  final selectedFilterBuildingId = Rxn<int>();
   
   final buildings = [].obs;
   final floors = [].obs;
@@ -110,8 +111,13 @@ class InspectionController extends GetxController {
         return;
       }
       
+      String url = '/inspections?page=${currentPage.value}';
+      if (selectedFilterBuildingId.value != null) {
+        url += '&building_id=${selectedFilterBuildingId.value}';
+      }
+
       final response = await _dio.get(
-        '/inspections?page=${currentPage.value}',
+        url,
         options: dio.Options(headers: {'Authorization': 'Bearer $token'}),
       );
       
@@ -136,8 +142,13 @@ class InspectionController extends GetxController {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('auth_token');
       
+      String url = '/inspections?page=${currentPage.value}';
+      if (selectedFilterBuildingId.value != null) {
+        url += '&building_id=${selectedFilterBuildingId.value}';
+      }
+
       final response = await _dio.get(
-        '/inspections?page=${currentPage.value}',
+        url,
         options: dio.Options(headers: {'Authorization': 'Bearer $token'}),
       );
       

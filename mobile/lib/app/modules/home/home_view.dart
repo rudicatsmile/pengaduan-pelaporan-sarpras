@@ -634,12 +634,66 @@ class HomeView extends GetView<HomeController> {
 
   Widget _buildInspectionHistory(BuildContext context) {
     final inspectionCtrl = Get.put(import_inspection.InspectionController());
-    return Obx(() {
-      return RefreshIndicator(
-        color: Colors.teal,
-        onRefresh: inspectionCtrl.fetchInspections,
-        child: inspectionCtrl.isLoading.value && inspectionCtrl.inspections.isEmpty
-            ? const Center(child: CircularProgressIndicator())
+    final homeCtrl = Get.find<HomeController>();
+
+    return Column(
+      children: [
+        Obx(() {
+          if (homeCtrl.userRoles.any((r) => ['super_admin', 'supervisor', 'admin'].contains(r))) {
+            return Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Filter Gedung:', style: context.textTheme.titleMedium),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 16.0),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey.shade300),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<int>(
+                            isExpanded: true,
+                            hint: const Text('Semua Gedung'),
+                            value: inspectionCtrl.selectedFilterBuildingId.value,
+                            items: [
+                              const DropdownMenuItem<int>(
+                                value: null,
+                                child: Text('Semua Gedung'),
+                              ),
+                              ...inspectionCtrl.buildings.map((building) {
+                                return DropdownMenuItem<int>(
+                                  value: building['id'],
+                                  child: Text(building['name']),
+                                );
+                              }).toList(),
+                            ],
+                            onChanged: (value) {
+                              inspectionCtrl.selectedFilterBuildingId.value = value;
+                              inspectionCtrl.fetchInspections();
+                            },
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }
+          return const SizedBox.shrink();
+        }),
+        Expanded(
+          child: Obx(() {
+            return RefreshIndicator(
+              color: Colors.teal,
+              onRefresh: inspectionCtrl.fetchInspections,
+              child: inspectionCtrl.isLoading.value && inspectionCtrl.inspections.isEmpty
+                  ? const Center(child: CircularProgressIndicator())
             : inspectionCtrl.inspections.isEmpty
                 ? CustomScrollView(
                     physics: const AlwaysScrollableScrollPhysics(),
@@ -711,9 +765,13 @@ class HomeView extends GetView<HomeController> {
                         );
                       },
                     ),
+                    ),
                   ),
-      );
-    });
+            );
+          }),
+        ),
+      ],
+    );
   }
 
   Widget _buildAssetInspectionHistory(BuildContext context) {
