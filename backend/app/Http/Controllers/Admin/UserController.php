@@ -16,8 +16,9 @@ class UserController extends Controller
     {
         if (!auth()->user()->hasRole('super_admin')) abort(403, 'Unauthorized');
         return Inertia::render('Admin/User/Index', [
-            'users' => User::with(['roles', 'permissions'])->get(),
+            'users' => User::with(['roles', 'permissions', 'jobCategory'])->get(),
             'roles' => Role::all(),
+            'jobCategories' => \App\Models\JobCategory::all(),
         ]);
     }
 
@@ -31,7 +32,8 @@ class UserController extends Controller
             'password' => 'required|string|min:8',
             'roles' => 'required|array|min:1',
             'roles.*' => 'string|exists:roles,name',
-            'receive_inspection_alerts' => 'nullable|boolean'
+            'receive_inspection_alerts' => 'nullable|boolean',
+            'job_category_id' => 'nullable|exists:job_categories,id'
         ]);
 
         $user = User::create([
@@ -39,6 +41,7 @@ class UserController extends Controller
             'email' => $request->email,
             'phone' => $request->phone,
             'password' => Hash::make($request->password),
+            'job_category_id' => $request->job_category_id,
         ]);
 
         $user->assignRole($request->roles);
@@ -64,13 +67,15 @@ class UserController extends Controller
             'phone' => 'nullable|string|max:20',
             'roles' => 'required|array|min:1',
             'roles.*' => 'string|exists:roles,name',
-            'receive_inspection_alerts' => 'nullable|boolean'
+            'receive_inspection_alerts' => 'nullable|boolean',
+            'job_category_id' => 'nullable|exists:job_categories,id'
         ]);
 
         $user->update([
             'name' => $request->name,
             'email' => $request->email,
             'phone' => $request->phone,
+            'job_category_id' => $request->job_category_id,
         ]);
 
         if ($request->filled('password')) {

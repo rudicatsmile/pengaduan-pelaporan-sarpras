@@ -66,6 +66,7 @@ Route::middleware('auth')->group(function () {
     Route::get('rooms/{room}/qr', [\App\Http\Controllers\Admin\RoomController::class, 'generateQr'])->name('rooms.qr');
     Route::resource('categories', \App\Http\Controllers\Admin\CategoryController::class);
     Route::resource('users', \App\Http\Controllers\Admin\UserController::class);
+    Route::resource('job-categories', \App\Http\Controllers\Admin\JobCategoryController::class);
     
     Route::get('/settings', [\App\Http\Controllers\Admin\SettingController::class, 'index'])->name('settings.index');
     Route::post('/settings', [\App\Http\Controllers\Admin\SettingController::class, 'update'])->name('settings.update');

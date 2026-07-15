@@ -5,7 +5,7 @@ import Modal from '@/Components/Modal';
 import Dropdown from '@/Components/Dropdown';
 import axios from 'axios';
 
-export default function Index({ users, roles }) {
+export default function Index({ users, roles, jobCategories }) {
     const [editing, setEditing] = useState(null);
     const [showFormModal, setShowFormModal] = useState(false);
     const [filterRole, setFilterRole] = useState('');
@@ -20,6 +20,7 @@ export default function Index({ users, roles }) {
         password: '',
         roles: [],
         receive_inspection_alerts: false,
+        job_category_id: '',
     });
 
     const submit = (e) => {
@@ -58,6 +59,7 @@ export default function Index({ users, roles }) {
             password: '', // blank password when editing
             roles: user.roles?.length > 0 ? user.roles.map(r => r.name) : [],
             receive_inspection_alerts: user.permissions?.some(p => p.name === 'receive-inspection-alerts') || false,
+            job_category_id: user.job_category_id || '',
         });
         clearErrors();
         setShowFormModal(true);
@@ -163,6 +165,7 @@ export default function Index({ users, roles }) {
                                             <th className="border-b p-4">ID</th>
                                             <th className="border-b p-4">Nama</th>
                                             <th className="border-b p-4">Email / No. WA</th>
+                                            <th className="border-b p-4">Kategori Jabatan</th>
                                             <th className="border-b p-4">Role</th>
                                             <th className="border-b p-4">Aksi</th>
                                         </tr>
@@ -175,6 +178,9 @@ export default function Index({ users, roles }) {
                                                 <td className="border-b p-4">
                                                     <div>{user.email}</div>
                                                     <div className="text-xs text-gray-500">{user.phone || '-'}</div>
+                                                </td>
+                                                <td className="border-b p-4">
+                                                    {user.job_category ? user.job_category.name : '-'}
                                                 </td>
                                                 <td className="border-b p-4">
                                                     {user.roles.map(r => (
@@ -283,6 +289,20 @@ export default function Index({ users, roles }) {
                                 required={!editing}
                             />
                             {errors.password && <div className="text-red-500 text-sm mt-1">{errors.password}</div>}
+                        </div>
+                        <div className="mb-4">
+                            <label className="block text-sm font-medium text-gray-700">Kategori Jabatan</label>
+                            <select
+                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                value={data.job_category_id}
+                                onChange={e => setData('job_category_id', e.target.value)}
+                            >
+                                <option value="">-- Tidak Ada / Kosong --</option>
+                                {jobCategories.map(jc => (
+                                    <option key={jc.id} value={jc.id}>{jc.name}</option>
+                                ))}
+                            </select>
+                            {errors.job_category_id && <div className="text-red-500 text-sm mt-1">{errors.job_category_id}</div>}
                         </div>
                         <div className="mb-4">
                             <label className="block text-sm font-medium text-gray-700 mb-2">Role</label>

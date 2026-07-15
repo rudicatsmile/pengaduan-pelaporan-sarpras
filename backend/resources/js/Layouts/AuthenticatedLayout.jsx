@@ -84,7 +84,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                                 <span className="inline-flex rounded-md h-full items-center">
                                                     <button
                                                         type="button"
-                                                        className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium leading-5 transition duration-150 ease-in-out focus:outline-none h-16 ${route().current('floors.*') || route().current('rooms.*') || route().current('categories.*') || route().current('users.*') ? 'border-indigo-400 text-gray-900 focus:border-indigo-700' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 focus:text-gray-700 focus:border-gray-300'}`}
+                                                        className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium leading-5 transition duration-150 ease-in-out focus:outline-none h-16 ${route().current('floors.*') || route().current('rooms.*') || route().current('categories.*') || route().current('job-categories.*') || route().current('users.*') ? 'border-indigo-400 text-gray-900 focus:border-indigo-700' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 focus:text-gray-700 focus:border-gray-300'}`}
                                                     >
                                                         Master Data
                                                         <svg className="ms-1 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
@@ -105,6 +105,9 @@ export default function AuthenticatedLayout({ header, children }) {
                                                     <>
                                                         <Dropdown.Link href={route('categories.index')}>
                                                             Kategori
+                                                        </Dropdown.Link>
+                                                        <Dropdown.Link href={route('job-categories.index')}>
+                                                            Kategori Jabatan
                                                         </Dropdown.Link>
                                                         <Dropdown.Link href={route('users.index')}>
                                                             User
@@ -254,6 +257,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                     {user.roles?.includes('super_admin') && (
                                         <>
                                             <ResponsiveNavLink href={route('categories.index')} active={route().current('categories.*')} className="pl-8">Kategori</ResponsiveNavLink>
+                                            <ResponsiveNavLink href={route('job-categories.index')} active={route().current('job-categories.*')} className="pl-8">Kategori Jabatan</ResponsiveNavLink>
                                             <ResponsiveNavLink href={route('users.index')} active={route().current('users.*')} className="pl-8">User</ResponsiveNavLink>
                                         </>
                                     )}
