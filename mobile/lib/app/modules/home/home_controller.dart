@@ -6,13 +6,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../routes/app_pages.dart';
 import '../../core/services/settings_service.dart';
 
-class HomeController extends GetxController with GetSingleTickerProviderStateMixin {
+class HomeController extends GetxController {
   final currentIndex = 0.obs;
   final userRole = ''.obs;
+  final userRoles = <String>[].obs;
   final userName = ''.obs;
   final isLoading = true.obs;
   final historyTabIndex = 0.obs;
-  late TabController historyTabController;
 
   final  _dio = ApiClient.instance;
 
@@ -21,16 +21,10 @@ class HomeController extends GetxController with GetSingleTickerProviderStateMix
   @override
   void onInit() {
     super.onInit();
-    historyTabController = TabController(length: 3, vsync: this);
     _fetchUser();
     _fetchSettings();
   }
 
-  @override
-  void onClose() {
-    historyTabController.dispose();
-    super.onClose();
-  }
 
   Future<void> _fetchSettings() async {
     appName.value = SettingsService.to.appName.value;
@@ -60,6 +54,7 @@ class HomeController extends GetxController with GetSingleTickerProviderStateMix
       if (response.statusCode == 200) {
         userName.value = response.data['user']['name'] ?? 'Pengguna';
         final roles = response.data['roles'] as List;
+        userRoles.assignAll(roles.map((e) => e.toString()));
         if (roles.isNotEmpty) {
           userRole.value = roles[0];
         } else {

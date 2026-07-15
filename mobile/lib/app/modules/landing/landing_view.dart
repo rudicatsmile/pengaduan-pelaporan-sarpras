@@ -48,10 +48,11 @@ class LandingView extends GetView<LandingController> {
                         height: 80,
                         width: 80,
                         fit: BoxFit.contain,
-                        errorBuilder: (context, error, stackTrace) => const Icon(
-                          Icons.report_problem_rounded,
-                          size: 80,
-                          color: Color(0xFF047857),
+                        errorBuilder: (context, error, stackTrace) => Image.asset(
+                          'assets/logo-default.png',
+                          width: 80,
+                          height: 80,
+                          fit: BoxFit.contain,
                         ),
                       ),
                     ),
@@ -78,7 +79,7 @@ class LandingView extends GetView<LandingController> {
                     ],
                   ),
                   child: const Icon(
-                    Icons.report_problem_rounded,
+                    Icons.info,
                     size: 80,
                     color: Color(0xFF047857),
                   ),

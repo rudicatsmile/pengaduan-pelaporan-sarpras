@@ -74,7 +74,7 @@ class TaskDetailView extends GetView<TaskDetailController> {
                   style: ElevatedButton.styleFrom(backgroundColor: Colors.teal, foregroundColor: Colors.white),
                   child: controller.isProcessing.value ? const CircularProgressIndicator(color: Colors.white) : const Text('Mulai Proses Tugas'),
                 )
-              else if (data['status'] == 'proses')
+              else if (data['status'] == 'dalam_proses')
                 _buildResolveForm(context)
               else if (data['status'] == 'selesai')
                 const Card(
@@ -150,7 +150,7 @@ class TaskDetailView extends GetView<TaskDetailController> {
   Color _getStatusColor(String status) {
     switch (status) {
       case 'didelegasikan': return Colors.teal[700]!;
-      case 'proses': return Colors.lightGreen;
+      case 'dalam_proses': return Colors.lightGreen;
       case 'selesai': return Colors.green;
       default: return Colors.black;
     }

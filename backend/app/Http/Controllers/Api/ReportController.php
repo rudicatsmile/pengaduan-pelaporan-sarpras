@@ -11,6 +11,9 @@ use Illuminate\Support\Facades\DB;
 
 class ReportController extends Controller
 {
+    use \App\Traits\BuildingAccess;
+    use \App\Traits\NotifyAdmins;
+
     public function store(Request $request)
     {
         $request->validate([
@@ -63,6 +66,13 @@ class ReportController extends Controller
 
             DB::commit();
 
+            // Send notification to admins
+            try {
+                $this->notifyAdmins($report);
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('Failed to notify admins: ' . $e->getMessage());
+            }
+
             return response()->json([
                 'message' => 'Laporan berhasil disubmit',
                 'data' => $report->load('attachments')
@@ -81,10 +91,19 @@ class ReportController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-        $query = Report::with(['category', 'room', 'assignedUser'])->latest();
+        $query = Report::with(['category', 'room.floor.building', 'assignedUser'])->latest();
 
-        if ($user->hasAnyRole(['admin', 'super_admin', 'supervisor'])) {
-            // Admin, Super Admin, and Supervisor sees all
+        if ($user->hasRole('admin')) {
+            $allowedBuildingIds = $this->getAllowedBuildingIds();
+            if ($allowedBuildingIds !== null) {
+                $query->where(function($q) use ($allowedBuildingIds) {
+                    $q->whereHas('room.floor', function($q2) use ($allowedBuildingIds) {
+                        $q2->whereIn('building_id', $allowedBuildingIds);
+                    })->orWhereNull('room_id');
+                });
+            }
+        } elseif ($user->hasAnyRole(['super_admin', 'supervisor'])) {
+            // Can see all
         } elseif ($user->hasRole('petugas')) {
             $query->where(function($q) use ($user) {
                 $q->where('user_id', $user->id)
@@ -110,7 +129,18 @@ class ReportController extends Controller
                 $q->where('user_id', $user->id)
                   ->orWhere('assigned_to', $user->id);
             });
-        } elseif (!$user->hasAnyRole(['admin', 'super_admin', 'supervisor'])) {
+        } elseif ($user->hasRole('admin')) {
+            $allowedBuildingIds = $this->getAllowedBuildingIds();
+            if ($allowedBuildingIds !== null) {
+                $query->where(function($q) use ($allowedBuildingIds) {
+                    $q->whereHas('room.floor', function($q2) use ($allowedBuildingIds) {
+                        $q2->whereIn('building_id', $allowedBuildingIds);
+                    })->orWhereNull('room_id');
+                });
+            }
+        } elseif ($user->hasAnyRole(['super_admin', 'supervisor'])) {
+            // Can see all
+        } else {
             $query->where('user_id', $user->id);
         }
 
@@ -133,6 +163,17 @@ class ReportController extends Controller
         }
 
         $report = Report::findOrFail($id);
+        
+        if ($request->user()->hasRole('admin')) {
+            $allowedBuildingIds = $this->getAllowedBuildingIds();
+            if ($allowedBuildingIds !== null) {
+                $buildingId = $report->room?->floor?->building_id;
+                if ($buildingId && !$allowedBuildingIds->contains($buildingId)) {
+                    return response()->json(['message' => 'Unauthorized (Building not assigned)'], 403);
+                }
+            }
+        }
+
         $report->update([
             'status' => 'diverifikasi',
             'verified_by' => $request->user()->id,
@@ -159,6 +200,17 @@ class ReportController extends Controller
         ]);
 
         $report = Report::findOrFail($id);
+        
+        if ($request->user()->hasRole('admin')) {
+            $allowedBuildingIds = $this->getAllowedBuildingIds();
+            if ($allowedBuildingIds !== null) {
+                $buildingId = $report->room?->floor?->building_id;
+                if ($buildingId && !$allowedBuildingIds->contains($buildingId)) {
+                    return response()->json(['message' => 'Unauthorized (Building not assigned)'], 403);
+                }
+            }
+        }
+
         $report->update([
             'status' => 'didelegasikan',
             'assigned_to' => $request->petugas_id,
@@ -211,7 +263,7 @@ class ReportController extends Controller
 
     public function resolve(Request $request, $id)
     {
-        $request->validate(['resolution_notes' => 'required|string']);
+        $request->validate(['resolution_notes' => 'nullable|string']);
         $report = Report::findOrFail($id);
 
         if ($report->assigned_to !== $request->user()->id && !$request->user()->hasAnyRole(['admin', 'super_admin'])) {

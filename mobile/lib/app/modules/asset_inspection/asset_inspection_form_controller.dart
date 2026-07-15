@@ -204,7 +204,7 @@ class AssetInspectionFormController extends GetxController {
         if (Get.isRegistered<import_home.HomeController>()) {
           final homeCtrl = Get.find<import_home.HomeController>();
           homeCtrl.changePage(1); // 1 is history
-          homeCtrl.historyTabController.animateTo(2); // 2 is Asset Inspection tab
+          homeCtrl.historyTabIndex.value = 2; // Set index to 2 for Asset Inspection tab
         }
         
         Get.until((route) => route.settings.name == Routes.HOME || route.isFirst);

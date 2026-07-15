@@ -24,20 +24,9 @@ Route::get('/symlink', function () {
 Route::get('/p/{roomId}', [\App\Http\Controllers\GuestReportController::class, 'showForm'])->name('public.report.form');
 Route::post('/p/{roomId}', [\App\Http\Controllers\GuestReportController::class, 'store'])->name('public.report.store');
 
-Route::get('/dashboard', function () {
-    $stats = [
-        'total' => \App\Models\Report::count(),
-        'menunggu' => \App\Models\Report::where('status', 'baru')->count(),
-        'diverifikasi' => \App\Models\Report::where('status', 'diverifikasi')->count(),
-        'didelegasikan' => \App\Models\Report::where('status', 'didelegasikan')->count(),
-        'proses' => \App\Models\Report::where('status', 'dalam_proses')->count(),
-        'selesai' => \App\Models\Report::where('status', 'selesai')->count(),
-        'ditolak' => \App\Models\Report::where('status', 'ditolak')->count(),
-    ];
-    return Inertia::render('Dashboard', [
-        'stats' => $stats
-    ]);
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -51,6 +40,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/reports/{id}/delegate', [\App\Http\Controllers\Admin\ReportController::class, 'delegate'])->name('reports.delegate');
     Route::post('/reports/{id}/process', [\App\Http\Controllers\Admin\ReportController::class, 'process'])->name('reports.process');
     Route::post('/reports/{id}/resolve', [\App\Http\Controllers\Admin\ReportController::class, 'resolve'])->name('reports.resolve');
+    Route::delete('/reports/{id}', [\App\Http\Controllers\Admin\ReportController::class, 'destroy'])->name('reports.destroy');
 
     // Analytics Routes
     Route::get('/analytics', [\App\Http\Controllers\Admin\AnalyticsController::class, 'index'])->name('analytics.index');
@@ -60,6 +50,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/inspections', [\App\Http\Controllers\Admin\InspectionController::class, 'index'])->name('inspections.index');
     Route::get('/inspections/{id}', [\App\Http\Controllers\Admin\InspectionController::class, 'show'])->name('inspections.show');
     Route::post('/inspections/{id}/notes', [\App\Http\Controllers\Admin\InspectionController::class, 'updateNotes'])->name('inspections.notes');
+    Route::delete('/inspections/{id}', [\App\Http\Controllers\Admin\InspectionController::class, 'destroy'])->name('inspections.destroy');
 
     // Asset Inspection Routes
     Route::get('/asset-inspections', [\App\Http\Controllers\Admin\AssetInspectionController::class, 'index'])->name('asset-inspections.index');
@@ -67,6 +58,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/asset-inspections', [\App\Http\Controllers\Admin\AssetInspectionController::class, 'store'])->name('asset-inspections.store');
     Route::get('/asset-inspections/get-assets', [\App\Http\Controllers\Admin\AssetInspectionController::class, 'getAssets'])->name('asset-inspections.get-assets');
     Route::get('/asset-inspections/{id}', [\App\Http\Controllers\Admin\AssetInspectionController::class, 'show'])->name('asset-inspections.show');
+    Route::delete('/asset-inspections/{id}', [\App\Http\Controllers\Admin\AssetInspectionController::class, 'destroy'])->name('asset-inspections.destroy');
 
     // Master Data Routes
     Route::resource('floors', \App\Http\Controllers\Admin\FloorController::class);

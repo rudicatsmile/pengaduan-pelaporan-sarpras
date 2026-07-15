@@ -1,9 +1,34 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
+import { useState } from 'react';
 import dayjs from 'dayjs';
+import Modal from '@/Components/Modal';
+import DangerButton from '@/Components/DangerButton';
+import SecondaryButton from '@/Components/SecondaryButton';
 
 export default function Index({ auth, inspections }) {
     const { flash } = usePage().props;
+    const isSuperAdmin = auth.user?.roles?.includes('super_admin');
+
+    const [confirmingDeletion, setConfirmingDeletion] = useState(false);
+    const [inspectionToDelete, setInspectionToDelete] = useState(null);
+
+    const confirmDeletion = (id) => {
+        setInspectionToDelete(id);
+        setConfirmingDeletion(true);
+    };
+
+    const closeModal = () => {
+        setConfirmingDeletion(false);
+        setTimeout(() => setInspectionToDelete(null), 200);
+    };
+
+    const deleteInspection = () => {
+        router.delete(route('asset-inspections.destroy', inspectionToDelete), {
+            preserveScroll: true,
+            onSuccess: () => closeModal(),
+        });
+    };
 
     return (
         <AuthenticatedLayout
@@ -70,16 +95,29 @@ export default function Index({ auth, inspections }) {
                                                         {inspection.room?.floor?.name} / {inspection.room?.floor?.building?.name}
                                                     </td>
                                                     <td className="px-6 py-4 text-center">
-                                                        <Link
-                                                            href={route('asset-inspections.show', inspection.id)}
-                                                            className="text-indigo-600 hover:text-indigo-900 mx-2"
-                                                            title="Lihat Detail"
-                                                        >
-                                                            <svg className="w-5 h-5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                                                            </svg>
-                                                        </Link>
+                                                        <div className="flex items-center justify-center space-x-3">
+                                                            <Link
+                                                                href={route('asset-inspections.show', inspection.id)}
+                                                                className="text-indigo-600 hover:text-indigo-900"
+                                                                title="Lihat Detail"
+                                                            >
+                                                                <svg className="w-5 h-5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                                                </svg>
+                                                            </Link>
+                                                            {isSuperAdmin && (
+                                                                <button
+                                                                    onClick={() => confirmDeletion(inspection.id)}
+                                                                    className="text-red-500 hover:text-red-700 transition-colors"
+                                                                    title="Hapus"
+                                                                >
+                                                                    <svg className="w-5 h-5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                                    </svg>
+                                                                </button>
+                                                            )}
+                                                        </div>
                                                     </td>
                                                 </tr>
                                             ))
@@ -91,6 +129,34 @@ export default function Index({ auth, inspections }) {
                     </div>
                 </div>
             </div>
+
+            <Modal show={confirmingDeletion} onClose={closeModal}>
+                <div className="p-6">
+                    <div className="flex items-start">
+                        <div className="flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+                            <svg className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" aria-hidden="true">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                        </div>
+                        <div className="ml-4 mt-0 text-left">
+                            <h2 className="text-lg font-medium text-gray-900">
+                                Hapus Inspeksi Aset?
+                            </h2>
+                            <p className="mt-1 text-sm text-gray-600">
+                                Apakah Anda yakin ingin menghapus catatan inspeksi aset ini? Semua detail data di dalamnya akan ikut terhapus permanen.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="mt-6 flex justify-end">
+                        <SecondaryButton onClick={closeModal}>Batal</SecondaryButton>
+
+                        <DangerButton className="ml-3" onClick={deleteInspection}>
+                            Hapus Inspeksi Aset
+                        </DangerButton>
+                    </div>
+                </div>
+            </Modal>
         </AuthenticatedLayout>
     );
 }

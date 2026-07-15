@@ -60,4 +60,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/tasks', [\App\Http\Controllers\Api\TaskController::class, 'index']);
     Route::post('/tasks/{id}/process', [\App\Http\Controllers\Api\TaskController::class, 'process']);
     Route::post('/tasks/{id}/resolve', [\App\Http\Controllers\Api\TaskController::class, 'resolve']);
+    
+    // Admin Building Assignment Routes
+    Route::get('/users/{userId}/buildings', [\App\Http\Controllers\Api\AdminBuildingController::class, 'getAssignedBuildings']);
+    Route::post('/users/{userId}/buildings', [\App\Http\Controllers\Api\AdminBuildingController::class, 'assignBuilding']);
+    Route::delete('/users/{userId}/buildings', [\App\Http\Controllers\Api\AdminBuildingController::class, 'revokeBuilding']);
 });

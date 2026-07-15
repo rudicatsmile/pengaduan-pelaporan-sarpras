@@ -1,6 +1,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, router, useForm, usePage } from '@inertiajs/react';
 import { useState } from 'react';
+import Modal from '@/Components/Modal';
 
 export default function Index({ floors, buildings, filters }) {
     const { auth } = usePage().props;
@@ -19,7 +20,8 @@ export default function Index({ floors, buildings, filters }) {
     };
 
     const [editing, setEditing] = useState(null);
-    const { data, setData, post, put, delete: destroy, processing, reset, errors } = useForm({
+    const [showFormModal, setShowFormModal] = useState(false);
+    const { data, setData, post, put, delete: destroy, processing, reset, errors, clearErrors } = useForm({
         name: '',
         building_id: '',
     });
@@ -30,14 +32,25 @@ export default function Index({ floors, buildings, filters }) {
             put(route('floors.update', editing.id), {
                 onSuccess: () => {
                     setEditing(null);
+                    setShowFormModal(false);
                     reset();
                 },
             });
         } else {
             post(route('floors.store'), {
-                onSuccess: () => reset(),
+                onSuccess: () => {
+                    setShowFormModal(false);
+                    reset();
+                },
             });
         }
+    };
+
+    const handleAdd = () => {
+        setEditing(null);
+        reset();
+        clearErrors();
+        setShowFormModal(true);
     };
 
     const handleEdit = (floor) => {
@@ -46,6 +59,8 @@ export default function Index({ floors, buildings, filters }) {
             name: floor.name,
             building_id: floor.building_id,
         });
+        clearErrors();
+        setShowFormModal(true);
     };
 
     const handleDelete = (id) => {
@@ -54,9 +69,11 @@ export default function Index({ floors, buildings, filters }) {
         }
     };
 
-    const cancelEdit = () => {
+    const closeFormModal = () => {
+        setShowFormModal(false);
         setEditing(null);
         reset();
+        clearErrors();
     };
 
     return (
@@ -66,85 +83,37 @@ export default function Index({ floors, buildings, filters }) {
             <Head title="Lantai" />
 
             <div className="py-12">
-                <div className={`mx-auto max-w-7xl sm:px-6 lg:px-8 grid grid-cols-1 ${isAdmin ? 'md:grid-cols-3 gap-6' : ''}`}>
-                    {/* Form Section */}
-                    {isAdmin && (
-                        <div className="md:col-span-1">
-                            <div className="bg-white p-6 shadow-sm sm:rounded-lg">
-                                <h3 className="font-bold text-lg mb-4">{editing ? 'Edit Lantai' : 'Tambah Lantai'}</h3>
-                                <form onSubmit={submit}>
-                                    <div className="mb-4">
-                                        <label className="block text-sm font-medium text-gray-700">Gedung</label>
-                                        <select
-                                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                                            value={data.building_id}
-                                            onChange={e => setData('building_id', e.target.value)}
-                                            required
-                                        >
-                                            <option value="">-- Pilih Gedung --</option>
-                                            {buildings.map(building => (
-                                                <option key={building.id} value={building.id}>
-                                                    {building.name}
-                                                </option>
-                                            ))}
-                                        </select>
-                                        {errors.building_id && <div className="text-red-500 text-sm mt-1">{errors.building_id}</div>}
-                                    </div>
-                                    <div className="mb-4">
-                                        <label className="block text-sm font-medium text-gray-700">Nama Lantai</label>
-                                        <input
-                                            type="text"
-                                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                                            value={data.name}
-                                            onChange={e => setData('name', e.target.value)}
-                                            required
-                                        />
-                                        {errors.name && <div className="text-red-500 text-sm mt-1">{errors.name}</div>}
-                                    </div>
-                                    <div className="flex space-x-2">
-                                        <button
-                                            type="submit"
-                                            disabled={processing}
-                                            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50"
-                                        >
-                                            {editing ? 'Simpan' : 'Tambah'}
-                                        </button>
-                                        {editing && (
-                                            <button
-                                                type="button"
-                                                onClick={cancelEdit}
-                                                className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300"
-                                            >
-                                                Batal
-                                            </button>
-                                        )}
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    )}
-
+                <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
                     {/* Table Section */}
-                    <div className={isAdmin ? "md:col-span-2" : ""}>
-                        {/* Filter Section */}
-                        <div className="bg-white p-4 shadow-sm sm:rounded-lg mb-4 flex items-center space-x-4">
-                            <label className="text-sm font-medium text-gray-700 whitespace-nowrap">Filter Gedung:</label>
-                            <select
-                                value={selectedBuilding}
-                                onChange={handleFilterChange}
-                                className="block w-full max-w-xs rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                            >
-                                <option value="">-- Semua Gedung --</option>
-                                {buildings.map(building => (
-                                    <option key={building.id} value={building.id}>
-                                        {building.name}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-
-                        <div className="bg-white shadow-sm sm:rounded-lg overflow-hidden">
-                            <div className="p-6">
+                    <div className="bg-white shadow-sm sm:rounded-lg overflow-hidden">
+                        <div className="p-6">
+                            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 space-y-4 md:space-y-0">
+                                <div className="flex items-center space-x-4">
+                                    <label className="text-sm font-medium text-gray-700 whitespace-nowrap">Filter Gedung:</label>
+                                    <select
+                                        value={selectedBuilding}
+                                        onChange={handleFilterChange}
+                                        className="block w-full max-w-xs rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                    >
+                                        <option value="">-- Semua Gedung --</option>
+                                        {buildings.map(building => (
+                                            <option key={building.id} value={building.id}>
+                                                {building.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                                {isAdmin && (
+                                    <button
+                                        onClick={handleAdd}
+                                        className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+                                    >
+                                        + Tambah Lantai
+                                    </button>
+                                )}
+                            </div>
+                            
+                            <div className="overflow-x-auto">
                                 <table className="w-full text-left border-collapse">
                                     <thead>
                                         <tr>
@@ -180,6 +149,61 @@ export default function Index({ floors, buildings, filters }) {
                     </div>
                 </div>
             </div>
+
+            {/* Form Modal */}
+            <Modal show={showFormModal} onClose={closeFormModal}>
+                <div className="p-6">
+                    <h2 className="text-lg font-medium text-gray-900 mb-4">
+                        {editing ? 'Edit Lantai' : 'Tambah Lantai'}
+                    </h2>
+                    <form onSubmit={submit}>
+                        <div className="mb-4">
+                            <label className="block text-sm font-medium text-gray-700">Gedung</label>
+                            <select
+                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                value={data.building_id}
+                                onChange={e => setData('building_id', e.target.value)}
+                                required
+                            >
+                                <option value="">-- Pilih Gedung --</option>
+                                {buildings.map(building => (
+                                    <option key={building.id} value={building.id}>
+                                        {building.name}
+                                    </option>
+                                ))}
+                            </select>
+                            {errors.building_id && <div className="text-red-500 text-sm mt-1">{errors.building_id}</div>}
+                        </div>
+                        <div className="mb-4">
+                            <label className="block text-sm font-medium text-gray-700">Nama Lantai</label>
+                            <input
+                                type="text"
+                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                value={data.name}
+                                onChange={e => setData('name', e.target.value)}
+                                required
+                            />
+                            {errors.name && <div className="text-red-500 text-sm mt-1">{errors.name}</div>}
+                        </div>
+                        <div className="flex justify-end space-x-2 mt-6">
+                            <button
+                                type="button"
+                                onClick={closeFormModal}
+                                className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300"
+                            >
+                                Batal
+                            </button>
+                            <button
+                                type="submit"
+                                disabled={processing}
+                                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                            >
+                                {editing ? 'Simpan Perubahan' : 'Tambah Lantai'}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </Modal>
         </AuthenticatedLayout>
     );
 }

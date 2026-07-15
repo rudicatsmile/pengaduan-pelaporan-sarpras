@@ -12,13 +12,23 @@ use Illuminate\Support\Facades\DB;
 
 class AssetInspectionController extends Controller
 {
+    use \App\Traits\BuildingAccess;
+    use \App\Traits\NotifyAdmins;
+
     public function index(Request $request)
     {
         $user = $request->user();
         
         $query = AssetInspection::with(['user', 'room.floor.building'])->latest();
 
-        if ($user->hasAnyRole(['super_admin', 'admin', 'supervisor'])) {
+        if ($user->hasRole('admin')) {
+            $allowedBuildingIds = $this->getAllowedBuildingIds();
+            if ($allowedBuildingIds !== null) {
+                $query->whereHas('room.floor', function($q) use ($allowedBuildingIds) {
+                    $q->whereIn('building_id', $allowedBuildingIds);
+                });
+            }
+        } elseif ($user->hasAnyRole(['super_admin', 'supervisor'])) {
             // Can see all
         } else {
             // Only see own inspections
@@ -97,6 +107,13 @@ class AssetInspectionController extends Controller
             }
 
             DB::commit();
+
+            try {
+                $this->notifyAssetInspection($inspection);
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('Failed to notify admins: ' . $e->getMessage());
+            }
+
             return response()->json([
                 'success' => true,
                 'message' => 'Inspeksi aset berhasil disimpan',
@@ -124,6 +141,16 @@ class AssetInspectionController extends Controller
                     'success' => false,
                     'message' => 'Unauthorized'
                 ], 403);
+            }
+        }
+
+        if ($user->hasRole('admin')) {
+            $allowedBuildingIds = $this->getAllowedBuildingIds();
+            if ($allowedBuildingIds !== null) {
+                $buildingId = $inspection->room?->floor?->building_id;
+                if ($buildingId && !$allowedBuildingIds->contains($buildingId)) {
+                    return response()->json(['success' => false, 'message' => 'Unauthorized (Building not assigned)'], 403);
+                }
             }
         }
 

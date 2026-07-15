@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\DB;
 
 class GuestReportController extends Controller
 {
+    use \App\Traits\NotifyAdmins;
+
     public function store(Request $request)
     {
         $request->validate([
@@ -58,6 +60,13 @@ class GuestReportController extends Controller
             }
 
             DB::commit();
+
+            // Send notification to admins
+            try {
+                $this->notifyAdmins($report);
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('Failed to notify admins: ' . $e->getMessage());
+            }
 
             return response()->json([
                 'message' => 'Laporan berhasil disubmit',

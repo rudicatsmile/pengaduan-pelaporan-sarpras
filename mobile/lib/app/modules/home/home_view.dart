@@ -163,9 +163,7 @@ class HomeView extends GetView<HomeController> {
       return const Center(child: CircularProgressIndicator());
     }
 
-    if (controller.userRole.value == 'petugas') {
-      return _buildPetugasDashboard(context);
-    }
+
 
     final historyCtrl = Get.put(HistoryController());
 
@@ -285,6 +283,48 @@ class HomeView extends GetView<HomeController> {
                         ),
                       ),
                     ),
+                    const SizedBox(height: 12),
+                    
+                    Obx(() {
+                      if (controller.userRoles.contains('petugas')) {
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 12.0),
+                          child: InkWell(
+                            onTap: () => Get.toNamed('/task/list'),
+                            child: Container(
+                              padding: const EdgeInsets.all(20),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF1D4ED8),
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withOpacity(0.2),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: const Icon(Icons.assignment, color: Colors.white, size: 32),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  const Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text('Daftar Tugas', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
+                                        Text('Lihat tugas yang didelegasikan', style: TextStyle(color: Colors.white70, fontSize: 12)),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      }
+                      return const SizedBox.shrink();
+                    }),
                     const SizedBox(height: 12),
                     
                     Obx(() {
@@ -435,82 +475,19 @@ class HomeView extends GetView<HomeController> {
     );
   }
 
-  Widget _buildPetugasDashboard(BuildContext context) {
-    return SafeArea(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-            width: double.infinity,
-            decoration: const BoxDecoration(
-              color: Color(0xFF047857),
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(30),
-                bottomRight: Radius.circular(30),
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Halo, Petugas!',
-                  style: context.textTheme.headlineMedium?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Daftar laporan yang didelegasikan menunggu diselesaikan.',
-                  style: context.textTheme.titleMedium?.copyWith(
-                    color: Colors.white.withOpacity(0.9),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 32),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: InkWell(
-                    onTap: () => Get.toNamed('/task/list'),
-                    child: Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          children: [
-                            Icon(Icons.assignment, size: 48, color: Colors.teal),
-                            SizedBox(height: 8),
-                            Text('Daftar Tugas'),
-                          ]
-                        )
-                      )
-                    )
-                  )
-                ),
-                const Expanded(child: SizedBox()), 
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildHistory(BuildContext context) {
     return SafeArea(
-      child: Column(
-        children: [
-          TabBar(
-            controller: controller.historyTabController,
-            labelColor: Colors.teal,
-            unselectedLabelColor: Colors.grey,
-            indicatorColor: Colors.teal,
-            isScrollable: true,
+      child: DefaultTabController(
+        length: 3,
+        initialIndex: controller.historyTabIndex.value,
+        child: Column(
+          children: [
+            TabBar(
+              labelColor: Colors.teal,
+              unselectedLabelColor: Colors.grey,
+              indicatorColor: Colors.teal,
+              isScrollable: true,
             tabs: const [
               Tab(text: 'Pengaduan'),
               Tab(text: 'Laporan Kinerja'),
@@ -519,7 +496,6 @@ class HomeView extends GetView<HomeController> {
           ),
           Expanded(
             child: TabBarView(
-              controller: controller.historyTabController,
               children: [
                   _buildPengaduanHistory(context),
                   _buildInspectionHistory(context),
@@ -529,7 +505,8 @@ class HomeView extends GetView<HomeController> {
             ),
           ],
         ),
-      );
+      ),
+    );
   }
 
   Widget _buildPengaduanHistory(BuildContext context) {
@@ -608,11 +585,13 @@ class HomeView extends GetView<HomeController> {
                 child: historyCtrl.isLoading.value && historyCtrl.reports.isEmpty
                     ? const Center(child: CircularProgressIndicator())
                     : historyCtrl.filteredReports.isEmpty
-                        ? ListView(
+                        ? CustomScrollView(
                             physics: const AlwaysScrollableScrollPhysics(),
-                            children: [
-                              SizedBox(height: MediaQuery.of(context).size.height * 0.3),
-                              Center(child: Text(historyCtrl.dateRange.value != null ? 'Tidak ada laporan di rentang tanggal ini' : 'Belum ada laporan')),
+                            slivers: [
+                              SliverFillRemaining(
+                                hasScrollBody: false,
+                                child: Center(child: Text(historyCtrl.dateRange.value != null ? 'Tidak ada laporan di rentang tanggal ini' : 'Belum ada laporan')),
+                              ),
                             ],
                           )
                         : NotificationListener<ScrollNotification>(
@@ -662,11 +641,13 @@ class HomeView extends GetView<HomeController> {
         child: inspectionCtrl.isLoading.value && inspectionCtrl.inspections.isEmpty
             ? const Center(child: CircularProgressIndicator())
             : inspectionCtrl.inspections.isEmpty
-                ? ListView(
+                ? CustomScrollView(
                     physics: const AlwaysScrollableScrollPhysics(),
-                    children: [
-                      SizedBox(height: MediaQuery.of(context).size.height * 0.3),
-                      const Center(child: Text('Belum ada inspeksi sarpras')),
+                    slivers: [
+                      SliverFillRemaining(
+                        hasScrollBody: false,
+                        child: Center(child: Text('Belum ada inspeksi sarpras')),
+                      ),
                     ],
                   )
                 : NotificationListener<ScrollNotification>(
@@ -744,11 +725,13 @@ class HomeView extends GetView<HomeController> {
         child: historyCtrl.isLoading.value && historyCtrl.inspections.isEmpty
             ? const Center(child: CircularProgressIndicator())
             : historyCtrl.inspections.isEmpty
-                ? ListView(
+                ? CustomScrollView(
                     physics: const AlwaysScrollableScrollPhysics(),
-                    children: [
-                      SizedBox(height: MediaQuery.of(context).size.height * 0.3),
-                      const Center(child: Text('Belum ada inspeksi aset')),
+                    slivers: [
+                      SliverFillRemaining(
+                        hasScrollBody: false,
+                        child: Center(child: Text('Belum ada inspeksi aset')),
+                      ),
                     ],
                   )
                 : NotificationListener<ScrollNotification>(

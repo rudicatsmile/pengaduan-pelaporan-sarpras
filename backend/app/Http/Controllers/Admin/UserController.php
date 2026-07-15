@@ -8,25 +8,30 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
 
 class UserController extends Controller
 {
     public function index()
     {
+        if (!auth()->user()->hasRole('super_admin')) abort(403, 'Unauthorized');
         return Inertia::render('Admin/User/Index', [
-            'users' => User::with('roles')->get(),
+            'users' => User::with(['roles', 'permissions'])->get(),
             'roles' => Role::all(),
         ]);
     }
 
     public function store(Request $request)
     {
+        if (!auth()->user()->hasRole('super_admin')) abort(403, 'Unauthorized');
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'phone' => 'nullable|string|max:20',
             'password' => 'required|string|min:8',
-            'role' => 'required|string|exists:roles,name'
+            'roles' => 'required|array|min:1',
+            'roles.*' => 'string|exists:roles,name',
+            'receive_inspection_alerts' => 'nullable|boolean'
         ]);
 
         $user = User::create([
@@ -36,13 +41,20 @@ class UserController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
-        $user->assignRole($request->role);
+        $user->assignRole($request->roles);
+
+        if ($request->receive_inspection_alerts && in_array('admin', $request->roles)) {
+            Permission::firstOrCreate(['name' => 'receive-inspection-alerts', 'guard_name' => 'web']);
+            $user->givePermissionTo('receive-inspection-alerts');
+        }
 
         return redirect()->back()->with('message', 'User berhasil ditambahkan.');
     }
 
     public function update(Request $request, User $user)
     {
+        if (!auth()->user()->hasRole('super_admin')) abort(403, 'Unauthorized');
+        
         if ($user->hasRole('super_admin') && !auth()->user()->hasRole('super_admin')) {
             return redirect()->back()->with('error', 'Anda tidak memiliki hak untuk mengubah Super Admin.');
         }
@@ -50,7 +62,9 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
             'phone' => 'nullable|string|max:20',
-            'role' => 'required|string|exists:roles,name'
+            'roles' => 'required|array|min:1',
+            'roles.*' => 'string|exists:roles,name',
+            'receive_inspection_alerts' => 'nullable|boolean'
         ]);
 
         $user->update([
@@ -63,13 +77,32 @@ class UserController extends Controller
             $user->update(['password' => Hash::make($request->password)]);
         }
 
-        $user->syncRoles([$request->role]);
+        $user->syncRoles($request->roles);
+
+        if (in_array('admin', $request->roles)) {
+            Permission::firstOrCreate(['name' => 'receive-inspection-alerts', 'guard_name' => 'web']);
+            if ($request->receive_inspection_alerts) {
+                if (!$user->hasPermissionTo('receive-inspection-alerts')) {
+                    $user->givePermissionTo('receive-inspection-alerts');
+                }
+            } else {
+                if ($user->hasPermissionTo('receive-inspection-alerts')) {
+                    $user->revokePermissionTo('receive-inspection-alerts');
+                }
+            }
+        } else {
+            if ($user->hasPermissionTo('receive-inspection-alerts')) {
+                $user->revokePermissionTo('receive-inspection-alerts');
+            }
+        }
 
         return redirect()->back()->with('message', 'User berhasil diubah.');
     }
 
     public function destroy(User $user)
     {
+        if (!auth()->user()->hasRole('super_admin')) abort(403, 'Unauthorized');
+        
         if ($user->hasRole('super_admin') && !auth()->user()->hasRole('super_admin')) {
             return redirect()->back()->with('error', 'Anda tidak memiliki hak untuk menghapus Super Admin.');
         }

@@ -13,12 +13,30 @@ use PDF; // From barryvdh/laravel-dompdf
 
 class RoomController extends Controller
 {
+    use \App\Traits\BuildingAccess;
+
     public function index(Request $request)
     {
+        $user = auth()->user();
+        if (!$user->hasAnyRole(['admin', 'super_admin'])) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $buildingId = $request->input('building_id');
         $floorId = $request->input('floor_id');
 
         $roomsQuery = Room::with(['floor.building', 'assignedUsers']);
+        $buildingsQuery = Building::with('floors');
+
+        if ($user->hasRole('admin')) {
+            $allowedBuildingIds = $this->getAllowedBuildingIds();
+            if ($allowedBuildingIds !== null) {
+                $roomsQuery->whereHas('floor', function($q) use ($allowedBuildingIds) {
+                    $q->whereIn('building_id', $allowedBuildingIds);
+                });
+                $buildingsQuery->whereIn('id', $allowedBuildingIds);
+            }
+        }
 
         if ($floorId) {
             $roomsQuery->where('floor_id', $floorId);
@@ -30,7 +48,7 @@ class RoomController extends Controller
 
         return Inertia::render('Admin/Room/Index', [
             'rooms' => $roomsQuery->get(),
-            'buildings' => Building::with('floors')->get(),
+            'buildings' => $buildingsQuery->get(),
             'officers' => User::role('petugas')->get(),
             'filters' => $request->only(['building_id', 'floor_id'])
         ]);
@@ -38,6 +56,10 @@ class RoomController extends Controller
 
     public function store(Request $request)
     {
+        if (!auth()->user()->hasRole('super_admin')) {
+            abort(403, 'Unauthorized action. Hanya Super Admin yang dapat mengelola ruangan.');
+        }
+
         $request->validate([
             'name' => 'required|string|max:255',
             'floor_id' => 'required|exists:floors,id',
@@ -63,6 +85,10 @@ class RoomController extends Controller
 
     public function update(Request $request, Room $room)
     {
+        if (!auth()->user()->hasRole('super_admin')) {
+            abort(403, 'Unauthorized action. Hanya Super Admin yang dapat mengelola ruangan.');
+        }
+
         $request->validate([
             'name' => 'required|string|max:255',
             'floor_id' => 'required|exists:floors,id',
@@ -88,6 +114,9 @@ class RoomController extends Controller
 
     public function destroy(Room $room)
     {
+        if (!auth()->user()->hasRole('super_admin')) {
+            abort(403, 'Unauthorized action. Hanya Super Admin yang dapat mengelola ruangan.');
+        }
         $room->delete();
         return redirect()->back()->with('message', 'Ruangan berhasil dihapus.');
     }

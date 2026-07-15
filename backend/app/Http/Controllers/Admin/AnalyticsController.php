@@ -11,10 +11,38 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AnalyticsController extends Controller
 {
+    use \App\Traits\BuildingAccess;
+
+    private function getBaseQuery()
+    {
+        $user = auth()->user();
+        $query = Report::query();
+
+        if ($user->hasRole('petugas')) {
+            $query->where(function($q) use ($user) {
+                $q->where('user_id', $user->id)
+                  ->orWhere('assigned_to', $user->id);
+            });
+        } elseif ($user->hasAnyRole(['admin', 'super_admin', 'supervisor'])) {
+            $allowedBuildingIds = $this->getAllowedBuildingIds();
+            if ($allowedBuildingIds !== null) {
+                $query->where(function($q) use ($allowedBuildingIds) {
+                    $q->whereHas('room.floor', function($q2) use ($allowedBuildingIds) {
+                        $q2->whereIn('building_id', $allowedBuildingIds);
+                    })->orWhereNull('room_id');
+                });
+            }
+        } else {
+            $query->where('user_id', $user->id);
+        }
+
+        return $query;
+    }
+
     public function index()
     {
         // Monthly trend (last 6 months)
-        $monthlyTrend = Report::select(
+        $monthlyTrend = $this->getBaseQuery()->select(
             DB::raw("DATE_FORMAT(created_at, '%Y-%m') as month"),
             DB::raw("COUNT(id) as total")
         )
@@ -24,12 +52,12 @@ class AnalyticsController extends Controller
         ->get();
 
         // Status breakdown
-        $statusBreakdown = Report::select('status', DB::raw("COUNT(id) as total"))
+        $statusBreakdown = $this->getBaseQuery()->select('status', DB::raw("COUNT(id) as total"))
         ->groupBy('status')
         ->get();
 
         // Category breakdown
-        $categoryBreakdown = Report::join('categories', 'reports.category_id', '=', 'categories.id')
+        $categoryBreakdown = $this->getBaseQuery()->join('categories', 'reports.category_id', '=', 'categories.id')
         ->select('categories.name as category', DB::raw("COUNT(reports.id) as total"))
         ->groupBy('categories.name')
         ->get();
@@ -43,7 +71,7 @@ class AnalyticsController extends Controller
 
     public function exportCsv()
     {
-        $reports = Report::with(['user', 'category', 'room', 'assignedToPetugas'])->latest()->get();
+        $reports = $this->getBaseQuery()->with(['user', 'category', 'room', 'assignedToPetugas'])->latest()->get();
 
         $headers = [
             'Cache-Control'       => 'must-revalidate, post-check=0, pre-check=0',

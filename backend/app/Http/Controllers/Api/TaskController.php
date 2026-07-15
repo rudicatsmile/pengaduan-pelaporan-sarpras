@@ -31,7 +31,7 @@ class TaskController extends Controller
             return response()->json(['message' => 'Tugas tidak ditemukan atau bukan milik Anda'], 404);
         }
 
-        $report->update(['status' => 'proses']);
+        $report->update(['status' => 'dalam_proses']);
 
         $report->activities()->create([
             'user_id' => $request->user()->id,
@@ -60,7 +60,7 @@ class TaskController extends Controller
 
         $request->validate([
             'resolution_notes' => 'nullable|string',
-            'attachment' => 'required|image|mimes:jpeg,png,jpg|max:2048'
+            'attachment' => 'nullable|image|mimes:jpeg,png,jpg|max:2048'
         ]);
 
         $report->update(['status' => 'selesai']);

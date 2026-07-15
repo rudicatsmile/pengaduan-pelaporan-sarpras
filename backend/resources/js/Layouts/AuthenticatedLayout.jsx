@@ -77,38 +77,44 @@ export default function AuthenticatedLayout({ header, children }) {
                                 </NavLink>
                                 
                                 {/* Menu Master Data */}
-                                <div className="hidden sm:flex sm:items-center">
-                                    <Dropdown>
-                                        <Dropdown.Trigger>
-                                            <span className="inline-flex rounded-md h-full items-center">
-                                                <button
-                                                    type="button"
-                                                    className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium leading-5 transition duration-150 ease-in-out focus:outline-none h-16 ${route().current('floors.*') || route().current('rooms.*') || route().current('categories.*') || route().current('users.*') ? 'border-indigo-400 text-gray-900 focus:border-indigo-700' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 focus:text-gray-700 focus:border-gray-300'}`}
-                                                >
-                                                    Master Data
-                                                    <svg className="ms-1 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                                        <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                                                    </svg>
-                                                </button>
-                                            </span>
-                                        </Dropdown.Trigger>
+                                {(user.roles?.includes('super_admin') || user.roles?.includes('admin')) && (
+                                    <div className="hidden sm:flex sm:items-center">
+                                        <Dropdown>
+                                            <Dropdown.Trigger>
+                                                <span className="inline-flex rounded-md h-full items-center">
+                                                    <button
+                                                        type="button"
+                                                        className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium leading-5 transition duration-150 ease-in-out focus:outline-none h-16 ${route().current('floors.*') || route().current('rooms.*') || route().current('categories.*') || route().current('users.*') ? 'border-indigo-400 text-gray-900 focus:border-indigo-700' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 focus:text-gray-700 focus:border-gray-300'}`}
+                                                    >
+                                                        Master Data
+                                                        <svg className="ms-1 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                            <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                                                        </svg>
+                                                    </button>
+                                                </span>
+                                            </Dropdown.Trigger>
 
-                                        <Dropdown.Content>
-                                            <Dropdown.Link href={route('floors.index')}>
-                                                Lantai
-                                            </Dropdown.Link>
-                                            <Dropdown.Link href={route('rooms.index')}>
-                                                Ruangan
-                                            </Dropdown.Link>
-                                            <Dropdown.Link href={route('categories.index')}>
-                                                Kategori
-                                            </Dropdown.Link>
-                                            <Dropdown.Link href={route('users.index')}>
-                                                User
-                                            </Dropdown.Link>
-                                        </Dropdown.Content>
-                                    </Dropdown>
-                                </div>
+                                            <Dropdown.Content>
+                                                <Dropdown.Link href={route('floors.index')}>
+                                                    Lantai
+                                                </Dropdown.Link>
+                                                <Dropdown.Link href={route('rooms.index')}>
+                                                    Ruangan
+                                                </Dropdown.Link>
+                                                {user.roles?.includes('super_admin') && (
+                                                    <>
+                                                        <Dropdown.Link href={route('categories.index')}>
+                                                            Kategori
+                                                        </Dropdown.Link>
+                                                        <Dropdown.Link href={route('users.index')}>
+                                                            User
+                                                        </Dropdown.Link>
+                                                    </>
+                                                )}
+                                            </Dropdown.Content>
+                                        </Dropdown>
+                                    </div>
+                                )}
 
                                 {user.roles?.includes('super_admin') && (
                                     <NavLink
@@ -239,15 +245,21 @@ export default function AuthenticatedLayout({ header, children }) {
                             Analitik & Laporan
                         </ResponsiveNavLink>
 
-                        <div className="pt-2 pb-1 border-t border-gray-200">
-                            <div className="px-4 font-medium text-base text-gray-800">Master Data</div>
-                            <div className="mt-1 space-y-1">
-                                <ResponsiveNavLink href={route('floors.index')} active={route().current('floors.*')} className="pl-8">Lantai</ResponsiveNavLink>
-                                <ResponsiveNavLink href={route('rooms.index')} active={route().current('rooms.*')} className="pl-8">Ruangan</ResponsiveNavLink>
-                                <ResponsiveNavLink href={route('categories.index')} active={route().current('categories.*')} className="pl-8">Kategori</ResponsiveNavLink>
-                                <ResponsiveNavLink href={route('users.index')} active={route().current('users.*')} className="pl-8">User</ResponsiveNavLink>
+                        {(user.roles?.includes('super_admin') || user.roles?.includes('admin')) && (
+                            <div className="pt-2 pb-1 border-t border-gray-200">
+                                <div className="px-4 font-medium text-base text-gray-800">Master Data</div>
+                                <div className="mt-1 space-y-1">
+                                    <ResponsiveNavLink href={route('floors.index')} active={route().current('floors.*')} className="pl-8">Lantai</ResponsiveNavLink>
+                                    <ResponsiveNavLink href={route('rooms.index')} active={route().current('rooms.*')} className="pl-8">Ruangan</ResponsiveNavLink>
+                                    {user.roles?.includes('super_admin') && (
+                                        <>
+                                            <ResponsiveNavLink href={route('categories.index')} active={route().current('categories.*')} className="pl-8">Kategori</ResponsiveNavLink>
+                                            <ResponsiveNavLink href={route('users.index')} active={route().current('users.*')} className="pl-8">User</ResponsiveNavLink>
+                                        </>
+                                    )}
+                                </div>
                             </div>
-                        </div>
+                        )}
 
                         {user.roles?.includes('super_admin') && (
                             <ResponsiveNavLink

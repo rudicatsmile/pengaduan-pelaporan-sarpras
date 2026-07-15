@@ -6,21 +6,64 @@ use App\Http\Controllers\Controller;
 use App\Models\Report;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class ReportController extends Controller
 {
-    public function index()
+    use \App\Traits\BuildingAccess;
+
+    public function index(Request $request)
     {
-        $reports = Report::with(['user', 'category', 'room.floor.building'])->latest()->get();
+        $user = $request->user();
+        $query = Report::with(['user', 'category', 'room.floor.building'])->latest();
+
+        if ($user->hasRole('petugas')) {
+            $query->where(function($q) use ($user) {
+                $q->where('user_id', $user->id)
+                  ->orWhere('assigned_to', $user->id);
+            });
+        } elseif ($user->hasAnyRole(['admin', 'super_admin', 'supervisor'])) {
+            $allowedBuildingIds = $this->getAllowedBuildingIds();
+            if ($allowedBuildingIds !== null) {
+                $query->where(function($q) use ($allowedBuildingIds) {
+                    $q->whereHas('room.floor', function($q2) use ($allowedBuildingIds) {
+                        $q2->whereIn('building_id', $allowedBuildingIds);
+                    })->orWhereNull('room_id');
+                });
+            }
+        } else {
+            $query->where('user_id', $user->id);
+        }
+
         return Inertia::render('Admin/Report/Index', [
-            'reports' => $reports
+            'reports' => $query->get()
         ]);
     }
 
     public function show($id)
     {
-        $report = Report::with(['user', 'category', 'room', 'attachments', 'activities.user'])->findOrFail($id);
+        $report = Report::with(['user', 'category', 'room.floor.building', 'attachments', 'activities.user'])->findOrFail($id);
+        $user = auth()->user();
+
+        // Check ownership/assignment for non-admins
+        if (!$user->hasAnyRole(['admin', 'super_admin', 'supervisor'])) {
+            if ($report->user_id !== $user->id && $report->assigned_to !== $user->id) {
+                abort(403, 'Unauthorized');
+            }
+        }
+
+        // Check building access for admin
+        if ($user->hasAnyRole(['admin', 'super_admin', 'supervisor'])) {
+            $allowedBuildingIds = $this->getAllowedBuildingIds();
+            if ($allowedBuildingIds !== null) {
+                $buildingId = $report->room?->floor?->building_id;
+                if ($buildingId && !$allowedBuildingIds->contains($buildingId)) {
+                    abort(403, 'Unauthorized (Building not assigned)');
+                }
+            }
+        }
+
         $petugas = User::role('petugas')->get();
 
         return Inertia::render('Admin/Report/Show', [
@@ -115,5 +158,34 @@ class ReportController extends Controller
         ]);
 
         return redirect()->back()->with('success', 'Laporan berhasil diselesaikan');
+    }
+
+    public function destroy($id)
+    {
+        $user = auth()->user();
+        if (!$user->hasRole('super_admin')) {
+            abort(403, 'Unauthorized');
+        }
+
+        $report = Report::with(['attachments', 'activities'])->findOrFail($id);
+
+        // Delete physical files
+        if ($report->attachments) {
+            foreach ($report->attachments as $attachment) {
+                $path = $attachment->getRawOriginal('file_path');
+                if ($path && Storage::disk('public')->exists($path)) {
+                    Storage::disk('public')->delete($path);
+                }
+            }
+            $report->attachments()->delete();
+        }
+
+        if ($report->activities) {
+            $report->activities()->delete();
+        }
+
+        $report->delete();
+
+        return redirect()->back()->with('success', 'Laporan berhasil dihapus.');
     }
 }

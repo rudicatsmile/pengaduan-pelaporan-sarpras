@@ -14,9 +14,25 @@ use Illuminate\Support\Facades\DB;
 
 class AssetInspectionController extends Controller
 {
+    use \App\Traits\BuildingAccess;
+
     public function index()
     {
-        $inspections = AssetInspection::with(['user', 'room.floor.building'])->latest()->get();
+        $user = auth()->user();
+        $query = AssetInspection::with(['user', 'room.floor.building'])->latest();
+
+        if ($user->hasAnyRole(['admin', 'super_admin', 'supervisor'])) {
+            $allowedBuildingIds = $this->getAllowedBuildingIds();
+            if ($allowedBuildingIds !== null) {
+                $query->whereHas('room.floor', function($q) use ($allowedBuildingIds) {
+                    $q->whereIn('building_id', $allowedBuildingIds);
+                });
+            }
+        } else {
+            $query->where('user_id', $user->id);
+        }
+
+        $inspections = $query->get();
         return Inertia::render('Admin/AssetInspection/Index', [
             'inspections' => $inspections
         ]);
@@ -24,7 +40,17 @@ class AssetInspectionController extends Controller
 
     public function create()
     {
-        $buildings = Building::with(['floors.rooms'])->get();
+        $user = auth()->user();
+        $buildingsQuery = Building::with(['floors.rooms']);
+        
+        if ($user->hasAnyRole(['admin', 'super_admin', 'supervisor'])) {
+            $allowedBuildingIds = $this->getAllowedBuildingIds();
+            if ($allowedBuildingIds !== null) {
+                $buildingsQuery->whereIn('id', $allowedBuildingIds);
+            }
+        }
+
+        $buildings = $buildingsQuery->get();
         return Inertia::render('Admin/AssetInspection/Create', [
             'buildings' => $buildings
         ]);
@@ -97,9 +123,44 @@ class AssetInspectionController extends Controller
     {
         $inspection = AssetInspection::with(['user', 'room.floor.building', 'details'])->findOrFail($id);
         
+        $user = auth()->user();
+        
+        // Ownership check
+        if ($inspection->user_id !== $user->id && !$user->hasAnyRole(['super_admin', 'admin', 'supervisor'])) {
+            abort(403, 'Unauthorized');
+        }
+
+        // Building check
+        if ($user->hasAnyRole(['admin', 'super_admin', 'supervisor'])) {
+            $allowedBuildingIds = $this->getAllowedBuildingIds();
+            if ($allowedBuildingIds !== null) {
+                $buildingId = $inspection->room?->floor?->building_id;
+                if ($buildingId && !$allowedBuildingIds->contains($buildingId)) {
+                    abort(403, 'Unauthorized (Building not assigned)');
+                }
+            }
+        }
         return Inertia::render('Admin/AssetInspection/Show', [
             'inspection' => $inspection
         ]);
+    }
+
+    public function destroy($id)
+    {
+        $user = auth()->user();
+        if (!$user->hasRole('super_admin')) {
+            abort(403, 'Unauthorized');
+        }
+
+        $inspection = AssetInspection::with('details')->findOrFail($id);
+
+        if ($inspection->details) {
+            $inspection->details()->delete();
+        }
+
+        $inspection->delete();
+
+        return redirect()->back()->with('success', 'Inspeksi aset berhasil dihapus.');
     }
 }
 

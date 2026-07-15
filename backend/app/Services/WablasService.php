@@ -24,20 +24,44 @@ class WablasService
             return false;
         }
 
+        $baseUrl = rtrim($domain, '/');
+        // Bersihkan url dari path spesifik jika user memasukkan full URL ke dalam .env
+        $baseUrl = preg_replace('#/api(/v2)?/send-message$#i', '', $baseUrl);
+        $baseUrl = preg_replace('#/api$#i', '', $baseUrl);
+
         try {
+            // Gunakan API v2 format terlebih dahulu
             $response = Http::withHeaders([
                 'Authorization' => $token,
-            ])->post($domain . '/api/send-message', [
-                'phone' => $phone,
-                'message' => $message,
+                'Content-Type' => 'application/json',
+            ])->post($baseUrl . '/api/v2/send-message', [
+                'data' => [
+                    [
+                        'phone' => $phone,
+                        'message' => $message,
+                    ]
+                ]
             ]);
 
-            if ($response->successful()) {
+            if ($response->successful() && $response->json('status') !== false) {
                 Log::info("Wablas success to $phone");
                 return true;
             }
 
-            Log::error("Wablas failed to $phone. Response: " . $response->body());
+            // Fallback ke API v1 jika gagal (beberapa server wablas lama menggunakan v1 form-urlencoded)
+            $v1Response = Http::asForm()->withHeaders([
+                'Authorization' => $token,
+            ])->post($baseUrl . '/api/send-message', [
+                'phone' => $phone,
+                'message' => $message,
+            ]);
+
+            if ($v1Response->successful() && $v1Response->json('status') !== false) {
+                Log::info("Wablas success to $phone (v1 fallback)");
+                return true;
+            }
+
+            Log::error("Wablas failed to $phone. V2: " . $response->body() . " | V1: " . $v1Response->body());
             return false;
         } catch (\Exception $e) {
             Log::error("Wablas exception to $phone: " . $e->getMessage());

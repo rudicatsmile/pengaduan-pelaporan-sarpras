@@ -15,10 +15,11 @@ class LoginView extends GetView<LoginController> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const SizedBox(height: 60),
-              Icon(
-                Icons.report_problem,
-                size: 80,
-                color: context.theme.colorScheme.primary,
+              Image.asset(
+                'assets/logo-default.png',
+                width: 80,
+                height: 80,
+                fit: BoxFit.contain,
               ),
               const SizedBox(height: 24),
               Text(
