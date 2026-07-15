@@ -38,6 +38,12 @@ class InspectionController extends Controller
             });
         }
 
+        if ($request->filled('job_category_id')) {
+            $query->whereHas('user', function($q) use ($request) {
+                $q->where('job_category_id', $request->job_category_id);
+            });
+        }
+
         return response()->json([
             'success' => true,
             'data' => $query->paginate(10)

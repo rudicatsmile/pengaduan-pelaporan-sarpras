@@ -20,8 +20,10 @@ class InspectionController extends GetxController {
   final selectedFloor = Rxn<int>();
   final selectedRoomId = Rxn<int>();
   final selectedFilterBuildingId = Rxn<int>();
+  final selectedFilterJobCategoryId = Rxn<int>();
   
   final buildings = [].obs;
+  final jobCategories = [].obs;
   final floors = [].obs;
   final filteredRooms = [].obs;
 
@@ -41,6 +43,20 @@ class InspectionController extends GetxController {
     super.onInit();
     fetchInspections();
     fetchBuildings();
+    fetchJobCategories();
+  }
+
+  Future<void> fetchJobCategories() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token');
+      final response = await _dio.get('/job-categories', options: dio.Options(headers: {'Authorization': 'Bearer $token'}));
+      if (response.statusCode == 200) {
+        jobCategories.value = response.data['data'];
+      }
+    } catch (e) {
+      print('Gagal memuat kategori jabatan: $e');
+    }
   }
 
   Future<void> fetchBuildings() async {
@@ -115,6 +131,9 @@ class InspectionController extends GetxController {
       if (selectedFilterBuildingId.value != null) {
         url += '&building_id=${selectedFilterBuildingId.value}';
       }
+      if (selectedFilterJobCategoryId.value != null) {
+        url += '&job_category_id=${selectedFilterJobCategoryId.value}';
+      }
 
       final response = await _dio.get(
         url,
@@ -145,6 +164,9 @@ class InspectionController extends GetxController {
       String url = '/inspections?page=${currentPage.value}';
       if (selectedFilterBuildingId.value != null) {
         url += '&building_id=${selectedFilterBuildingId.value}';
+      }
+      if (selectedFilterJobCategoryId.value != null) {
+        url += '&job_category_id=${selectedFilterJobCategoryId.value}';
       }
 
       final response = await _dio.get(

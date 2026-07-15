@@ -205,7 +205,7 @@ export default function Index({ users, roles, jobCategories }) {
                                                             >
                                                                 Edit
                                                             </button>
-                                                            {user.roles?.some(r => r.name === 'admin') && (
+                                                            {user.roles?.some(r => r.name === 'admin' || r.name === 'supervisor') && (
                                                                 <button 
                                                                     onClick={() => openBuildingModal(user)} 
                                                                     className="block w-full px-4 py-2 text-left text-sm leading-5 text-green-700 hover:bg-gray-100 focus:bg-gray-100 transition duration-150 ease-in-out"
@@ -369,7 +369,7 @@ export default function Index({ users, roles, jobCategories }) {
             <Modal show={managingBuildingsFor !== null} onClose={closeBuildingModal}>
                 <div className="p-6">
                     <h2 className="text-lg font-medium text-gray-900 mb-4">
-                        Kelola Gedung untuk Admin: {managingBuildingsFor?.name}
+                        Kelola Gedung untuk User: {managingBuildingsFor?.name}
                     </h2>
                     {loadingBuildings ? (
                         <div className="text-center py-4">Memuat data...</div>

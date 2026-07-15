@@ -24,6 +24,13 @@ Route::get('/rooms/{code}', [RoomController::class, 'show']);
 Route::post('/guest/reports', [\App\Http\Controllers\Api\GuestReportController::class, 'store']);
 
 Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/job-categories', function() {
+        return response()->json([
+            'success' => true,
+            'data' => \App\Models\JobCategory::all()
+        ]);
+    });
+    
     Route::get('/user', [AuthController::class, 'user']);
     Route::post('/user/update', [AuthController::class, 'updateProfile']);
     Route::post('/user/password', [AuthController::class, 'changePassword']);

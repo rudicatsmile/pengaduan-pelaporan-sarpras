@@ -35,16 +35,25 @@ class InspectionController extends Controller
             });
         }
 
+        if ($request->filled('job_category_id')) {
+            $query->whereHas('user', function($q) use ($request) {
+                $q->where('job_category_id', $request->job_category_id);
+            });
+        }
+
         $buildingsQuery = \App\Models\Building::query();
         if ($user->hasAnyRole(['admin', 'supervisor']) && $allowedBuildingIds !== null) {
             $buildingsQuery->whereIn('id', $allowedBuildingIds);
         }
         $buildings = $buildingsQuery->get(['id', 'name']);
+        
+        $jobCategories = \App\Models\JobCategory::all();
 
         return Inertia::render('Admin/Inspection/Index', [
             'inspections' => $query->get(),
             'buildings' => $buildings,
-            'filters' => request()->only(['building_id']),
+            'jobCategories' => $jobCategories,
+            'filters' => request()->only(['building_id', 'job_category_id']),
         ]);
     }
 

@@ -2,13 +2,13 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router } from '@inertiajs/react';
 import dayjs from 'dayjs';
 
-export default function Index({ auth, inspections, buildings = [], filters = {} }) {
+export default function Index({ auth, inspections, buildings = [], jobCategories = [], filters = {} }) {
     const isSuperAdmin = auth.user.roles?.includes('super_admin');
 
-    const handleFilterChange = (e) => {
+    const handleFilterChange = (key, value) => {
         router.get(
             route('inspections.index'),
-            { building_id: e.target.value },
+            { ...filters, [key]: value },
             { preserveState: true, replace: true }
         );
     };
@@ -33,7 +33,7 @@ export default function Index({ auth, inspections, buildings = [], filters = {} 
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
                     <div className="overflow-hidden bg-white shadow-sm sm:rounded-lg">
                         <div className="p-6 text-gray-900">
-                            <div className="mb-4 flex justify-between items-end">
+                            <div className="mb-4 flex space-x-4 items-end">
                                 <div className="w-64">
                                     <label htmlFor="building_filter" className="block text-sm font-medium text-gray-700 mb-1">
                                         Filter Gedung
@@ -42,12 +42,30 @@ export default function Index({ auth, inspections, buildings = [], filters = {} 
                                         id="building_filter"
                                         className="block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
                                         value={filters.building_id || ''}
-                                        onChange={handleFilterChange}
+                                        onChange={(e) => handleFilterChange('building_id', e.target.value)}
                                     >
                                         <option value="">Semua Gedung</option>
                                         {buildings.map((building) => (
                                             <option key={building.id} value={building.id}>
                                                 {building.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className="w-64">
+                                    <label htmlFor="job_category_filter" className="block text-sm font-medium text-gray-700 mb-1">
+                                        Filter Kategori Jabatan
+                                    </label>
+                                    <select
+                                        id="job_category_filter"
+                                        className="block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+                                        value={filters.job_category_id || ''}
+                                        onChange={(e) => handleFilterChange('job_category_id', e.target.value)}
+                                    >
+                                        <option value="">Semua Jabatan</option>
+                                        {jobCategories.map((jc) => (
+                                            <option key={jc.id} value={jc.id}>
+                                                {jc.name}
                                             </option>
                                         ))}
                                     </select>
