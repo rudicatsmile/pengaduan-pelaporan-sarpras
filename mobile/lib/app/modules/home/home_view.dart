@@ -597,17 +597,21 @@ class HomeView extends GetView<HomeController> {
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: DropdownButtonHideUnderline(
-                                child: DropdownButton<int>(
+                                child: DropdownButton<dynamic>(
                                   isExpanded: true,
                                   hint: const Text('Semua Gedung'),
                                   value: historyCtrl.selectedFilterBuildingId.value,
                                   items: [
-                                    const DropdownMenuItem<int>(
+                                    const DropdownMenuItem<dynamic>(
                                       value: null,
                                       child: Text('Semua Gedung'),
                                     ),
+                                    const DropdownMenuItem<dynamic>(
+                                      value: 'umum',
+                                      child: Text('Pengaduan Umum (Tanpa Gedung Khusus)'),
+                                    ),
                                     ...historyCtrl.buildings.map((building) {
-                                      return DropdownMenuItem<int>(
+                                      return DropdownMenuItem<dynamic>(
                                         value: building['id'],
                                         child: Text(building['name']),
                                       );

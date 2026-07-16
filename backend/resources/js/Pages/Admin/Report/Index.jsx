@@ -100,6 +100,7 @@ export default function Index({ reports, buildings = [], jobCategories = [], fil
                                         onChange={(e) => handleFilterChange('building_id', e.target.value)}
                                     >
                                         <option value="">Semua Gedung</option>
+                                        <option value="umum">Pengaduan Umum (Tanpa Gedung Khusus)</option>
                                         {buildings.map((building) => (
                                             <option key={building.id} value={building.id}>
                                                 {building.name}

@@ -37,9 +37,13 @@ class ReportController extends Controller
         }
 
         if ($request->filled('building_id')) {
-            $query->whereHas('room.floor', function($q) use ($request) {
-                $q->where('building_id', $request->building_id);
-            });
+            if ($request->building_id === 'umum') {
+                $query->whereNull('room_id');
+            } else {
+                $query->whereHas('room.floor', function($q) use ($request) {
+                    $q->where('building_id', $request->building_id);
+                });
+            }
         }
 
         if ($request->filled('job_category_id')) {

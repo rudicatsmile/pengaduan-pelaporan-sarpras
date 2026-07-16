@@ -9,7 +9,7 @@ class HistoryController extends GetxController {
   final isLoading = true.obs;
   final dateRange = Rxn<DateTimeRange>();
   
-  final selectedFilterBuildingId = Rxn<int>();
+  final selectedFilterBuildingId = Rxn<dynamic>();
   final selectedFilterJobCategoryId = Rxn<int>();
   final buildings = [].obs;
   final jobCategories = [].obs;
