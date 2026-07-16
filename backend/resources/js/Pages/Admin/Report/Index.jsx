@@ -5,12 +5,20 @@ import Modal from '@/Components/Modal';
 import DangerButton from '@/Components/DangerButton';
 import SecondaryButton from '@/Components/SecondaryButton';
 
-export default function Index({ reports }) {
+export default function Index({ reports, buildings = [], jobCategories = [], filters = {} }) {
     const { auth } = usePage().props;
     const isSuperAdmin = auth.user?.roles?.includes('super_admin');
 
     const [confirmingReportDeletion, setConfirmingReportDeletion] = useState(false);
     const [reportToDelete, setReportToDelete] = useState(null);
+
+    const handleFilterChange = (key, value) => {
+        router.get(
+            route('reports.index'),
+            { ...filters, [key]: value },
+            { preserveState: true, replace: true }
+        );
+    };
 
     const confirmReportDeletion = (id) => {
         setReportToDelete(id);
@@ -80,6 +88,44 @@ export default function Index({ reports }) {
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
                     <div className="overflow-hidden bg-white shadow-sm sm:rounded-lg">
                         <div className="p-6 text-gray-900">
+                            <div className="mb-4 flex space-x-4 items-end">
+                                <div className="w-64">
+                                    <label htmlFor="building_filter" className="block text-sm font-medium text-gray-700 mb-1">
+                                        Filter Gedung
+                                    </label>
+                                    <select
+                                        id="building_filter"
+                                        className="block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+                                        value={filters.building_id || ''}
+                                        onChange={(e) => handleFilterChange('building_id', e.target.value)}
+                                    >
+                                        <option value="">Semua Gedung</option>
+                                        {buildings.map((building) => (
+                                            <option key={building.id} value={building.id}>
+                                                {building.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className="w-64">
+                                    <label htmlFor="job_category_filter" className="block text-sm font-medium text-gray-700 mb-1">
+                                        Filter Kategori Jabatan
+                                    </label>
+                                    <select
+                                        id="job_category_filter"
+                                        className="block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+                                        value={filters.job_category_id || ''}
+                                        onChange={(e) => handleFilterChange('job_category_id', e.target.value)}
+                                    >
+                                        <option value="">Semua Jabatan</option>
+                                        {jobCategories.map((jc) => (
+                                            <option key={jc.id} value={jc.id}>
+                                                {jc.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
                             <div className="overflow-x-auto">
                                 <table className="w-full text-left border-collapse min-w-full">
                                     <thead>

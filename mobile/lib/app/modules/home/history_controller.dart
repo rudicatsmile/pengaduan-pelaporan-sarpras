@@ -9,6 +9,11 @@ class HistoryController extends GetxController {
   final isLoading = true.obs;
   final dateRange = Rxn<DateTimeRange>();
   
+  final selectedFilterBuildingId = Rxn<int>();
+  final selectedFilterJobCategoryId = Rxn<int>();
+  final buildings = [].obs;
+  final jobCategories = [].obs;
+  
   // Pagination
   final currentPage = 1.obs;
   final hasMore = true.obs;
@@ -39,6 +44,34 @@ class HistoryController extends GetxController {
   void onInit() {
     super.onInit();
     fetchReports();
+    fetchBuildings();
+    fetchJobCategories();
+  }
+
+  Future<void> fetchBuildings() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token');
+      final response = await _dio.get('/buildings', options: Options(headers: {'Authorization': 'Bearer $token'}));
+      if (response.statusCode == 200) {
+        buildings.value = response.data['data'];
+      }
+    } catch (e) {
+      print('Gagal memuat daftar gedung: $e');
+    }
+  }
+
+  Future<void> fetchJobCategories() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token');
+      final response = await _dio.get('/job-categories', options: Options(headers: {'Authorization': 'Bearer $token'}));
+      if (response.statusCode == 200) {
+        jobCategories.value = response.data['data'];
+      }
+    } catch (e) {
+      print('Gagal memuat kategori jabatan: $e');
+    }
   }
 
   Future<void> fetchReports() async {
@@ -55,8 +88,16 @@ class HistoryController extends GetxController {
         return;
       }
       
+      String url = '/reports?page=${currentPage.value}';
+      if (selectedFilterBuildingId.value != null) {
+        url += '&building_id=${selectedFilterBuildingId.value}';
+      }
+      if (selectedFilterJobCategoryId.value != null) {
+        url += '&job_category_id=${selectedFilterJobCategoryId.value}';
+      }
+
       final response = await _dio.get(
-        '/reports?page=${currentPage.value}',
+        url,
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
       
@@ -81,8 +122,16 @@ class HistoryController extends GetxController {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('auth_token');
       
+      String url = '/reports?page=${currentPage.value}';
+      if (selectedFilterBuildingId.value != null) {
+        url += '&building_id=${selectedFilterBuildingId.value}';
+      }
+      if (selectedFilterJobCategoryId.value != null) {
+        url += '&job_category_id=${selectedFilterJobCategoryId.value}';
+      }
+
       final response = await _dio.get(
-        '/reports?page=${currentPage.value}',
+        url,
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
       

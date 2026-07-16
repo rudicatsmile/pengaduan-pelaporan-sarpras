@@ -36,8 +36,31 @@ class ReportController extends Controller
             $query->where('user_id', $user->id);
         }
 
+        if ($request->filled('building_id')) {
+            $query->whereHas('room.floor', function($q) use ($request) {
+                $q->where('building_id', $request->building_id);
+            });
+        }
+
+        if ($request->filled('job_category_id')) {
+            $query->whereHas('user', function($q) use ($request) {
+                $q->where('job_category_id', $request->job_category_id);
+            });
+        }
+
+        $buildingsQuery = \App\Models\Building::query();
+        if ($user->hasAnyRole(['admin', 'supervisor']) && $allowedBuildingIds !== null) {
+            $buildingsQuery->whereIn('id', $allowedBuildingIds);
+        }
+        $buildings = $buildingsQuery->get(['id', 'name']);
+        
+        $jobCategories = \App\Models\JobCategory::all();
+
         return Inertia::render('Admin/Report/Index', [
-            'reports' => $query->get()
+            'reports' => $query->get(),
+            'buildings' => $buildings,
+            'jobCategories' => $jobCategories,
+            'filters' => request()->only(['building_id', 'job_category_id']),
         ]);
     }
 

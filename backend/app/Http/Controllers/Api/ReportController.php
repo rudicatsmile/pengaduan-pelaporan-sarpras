@@ -93,7 +93,24 @@ class ReportController extends Controller
         $user = $request->user();
         $query = Report::with(['category', 'room.floor.building', 'assignedUser'])->latest();
 
-        if ($user->hasRole('admin')) {
+        if ($request->filled('building_id')) {
+            $query->whereHas('room.floor', function($q) use ($request) {
+                $q->where('building_id', $request->building_id);
+            });
+        }
+
+        if ($request->filled('job_category_id')) {
+            $query->whereHas('user', function($q) use ($request) {
+                $q->where('job_category_id', $request->job_category_id);
+            });
+        }
+
+        if ($user->hasRole('petugas')) {
+            $query->where(function($q) use ($user) {
+                $q->where('user_id', $user->id)
+                  ->orWhere('assigned_to', $user->id);
+            });
+        } elseif ($user->hasAnyRole(['admin', 'super_admin', 'supervisor'])) {
             $allowedBuildingIds = $this->getAllowedBuildingIds();
             if ($allowedBuildingIds !== null) {
                 $query->where(function($q) use ($allowedBuildingIds) {
@@ -102,13 +119,6 @@ class ReportController extends Controller
                     })->orWhereNull('room_id');
                 });
             }
-        } elseif ($user->hasAnyRole(['super_admin', 'supervisor'])) {
-            // Can see all
-        } elseif ($user->hasRole('petugas')) {
-            $query->where(function($q) use ($user) {
-                $q->where('user_id', $user->id)
-                  ->orWhere('assigned_to', $user->id);
-            });
         } else {
             $query->where('user_id', $user->id);
         }
@@ -129,7 +139,7 @@ class ReportController extends Controller
                 $q->where('user_id', $user->id)
                   ->orWhere('assigned_to', $user->id);
             });
-        } elseif ($user->hasRole('admin')) {
+        } elseif ($user->hasAnyRole(['admin', 'super_admin', 'supervisor'])) {
             $allowedBuildingIds = $this->getAllowedBuildingIds();
             if ($allowedBuildingIds !== null) {
                 $query->where(function($q) use ($allowedBuildingIds) {
@@ -138,8 +148,6 @@ class ReportController extends Controller
                     })->orWhereNull('room_id');
                 });
             }
-        } elseif ($user->hasAnyRole(['super_admin', 'supervisor'])) {
-            // Can see all
         } else {
             $query->where('user_id', $user->id);
         }

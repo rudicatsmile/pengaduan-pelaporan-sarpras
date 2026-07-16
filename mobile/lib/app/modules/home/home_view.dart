@@ -577,6 +577,101 @@ class HomeView extends GetView<HomeController> {
               ],
             ),
           ),
+          Obx(() {
+            if (controller.userRoles.any((r) => ['super_admin', 'supervisor', 'admin'].contains(r))) {
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('Filter Gedung:', style: context.textTheme.titleMedium),
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.only(left: 16.0),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.grey.shade300),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: DropdownButtonHideUnderline(
+                                child: DropdownButton<int>(
+                                  isExpanded: true,
+                                  hint: const Text('Semua Gedung'),
+                                  value: historyCtrl.selectedFilterBuildingId.value,
+                                  items: [
+                                    const DropdownMenuItem<int>(
+                                      value: null,
+                                      child: Text('Semua Gedung'),
+                                    ),
+                                    ...historyCtrl.buildings.map((building) {
+                                      return DropdownMenuItem<int>(
+                                        value: building['id'],
+                                        child: Text(building['name']),
+                                      );
+                                    }).toList(),
+                                  ],
+                                  onChanged: (value) {
+                                    historyCtrl.selectedFilterBuildingId.value = value;
+                                    historyCtrl.fetchReports();
+                                  },
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('Filter Jabatan:', style: context.textTheme.titleMedium),
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.only(left: 16.0),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.grey.shade300),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: DropdownButtonHideUnderline(
+                                child: DropdownButton<int>(
+                                  isExpanded: true,
+                                  hint: const Text('Semua Jabatan'),
+                                  value: historyCtrl.selectedFilterJobCategoryId.value,
+                                  items: [
+                                    const DropdownMenuItem<int>(
+                                      value: null,
+                                      child: Text('Semua Jabatan'),
+                                    ),
+                                    ...historyCtrl.jobCategories.map((jc) {
+                                      return DropdownMenuItem<int>(
+                                        value: jc['id'],
+                                        child: Text(jc['name']),
+                                      );
+                                    }).toList(),
+                                  ],
+                                  onChanged: (value) {
+                                    historyCtrl.selectedFilterJobCategoryId.value = value;
+                                    historyCtrl.fetchReports();
+                                  },
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              );
+            }
+            return const SizedBox.shrink();
+          }),
           Expanded(
             child: Obx(() {
               return RefreshIndicator(
