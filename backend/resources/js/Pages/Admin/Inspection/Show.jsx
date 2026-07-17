@@ -1,6 +1,9 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
+import { useState } from 'react';
 import dayjs from 'dayjs';
+import Lightbox from "yet-another-react-lightbox";
+import "yet-another-react-lightbox/styles.css";
 
 export default function Show({ auth, inspection }) {
     const isAdmin = auth.user?.roles?.includes('admin') || auth.user?.roles?.includes('super_admin');
@@ -8,6 +11,9 @@ export default function Show({ auth, inspection }) {
     const { data, setData, post, processing, errors } = useForm({
         notes: inspection.notes || '',
     });
+
+    const [lightboxOpen, setLightboxOpen] = useState(false);
+    const [lightboxIndex, setLightboxIndex] = useState(0);
 
     const submitNotes = (e) => {
         e.preventDefault();
@@ -63,8 +69,15 @@ export default function Show({ auth, inspection }) {
                             <p className="text-sm text-gray-500">Tidak ada foto terlampir.</p>
                         ) : (
                             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                                {inspection.images.map((img) => (
-                                    <div key={img.id} className="aspect-square rounded-lg overflow-hidden border border-gray-200 bg-gray-50">
+                                {inspection.images.map((img, index) => (
+                                    <div 
+                                        key={img.id} 
+                                        className="aspect-square rounded-lg overflow-hidden border border-gray-200 bg-gray-50 cursor-pointer hover:opacity-90 transition-opacity"
+                                        onClick={() => {
+                                            setLightboxIndex(index);
+                                            setLightboxOpen(true);
+                                        }}
+                                    >
                                         <img 
                                             src={img.image_path} 
                                             alt="Lampiran" 
@@ -107,6 +120,15 @@ export default function Show({ auth, inspection }) {
                     </div>
                 </div>
             </div>
+
+            {inspection.images && inspection.images.length > 0 && (
+                <Lightbox
+                    open={lightboxOpen}
+                    close={() => setLightboxOpen(false)}
+                    index={lightboxIndex}
+                    slides={inspection.images.map(img => ({ src: img.image_path }))}
+                />
+            )}
         </AuthenticatedLayout>
     );
 }
