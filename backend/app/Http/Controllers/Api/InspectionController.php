@@ -16,7 +16,7 @@ class InspectionController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-        $query = Inspection::with(['user', 'room', 'images'])->latest();
+        $query = Inspection::with(['user', 'room', 'images', 'readBy'])->latest();
 
         if ($user->hasRole('admin')) {
             $allowedBuildingIds = $this->getAllowedBuildingIds();
@@ -42,6 +42,25 @@ class InspectionController extends Controller
             $query->whereHas('user', function($q) use ($request) {
                 $q->where('job_category_id', $request->job_category_id);
             });
+        }
+
+        if ($request->filled('start_date') || $request->filled('end_date')) {
+            $startDate = $request->filled('start_date') 
+                ? \Carbon\Carbon::parse($request->start_date, 'Asia/Jakarta')->startOfDay()->utc() 
+                : null;
+                
+            $endDate = $request->filled('end_date') 
+                ? \Carbon\Carbon::parse($request->end_date, 'Asia/Jakarta')->endOfDay()->utc() 
+                : null;
+
+            if ($startDate && $endDate) {
+                $query->whereBetween('created_at', [$startDate, $endDate]);
+            } elseif ($startDate) {
+                $singleDayEnd = \Carbon\Carbon::parse($request->start_date, 'Asia/Jakarta')->endOfDay()->utc();
+                $query->whereBetween('created_at', [$startDate, $singleDayEnd]);
+            } elseif ($endDate) {
+                $query->where('created_at', '<=', $endDate);
+            }
         }
 
         return response()->json([
@@ -90,7 +109,7 @@ class InspectionController extends Controller
 
     public function show(Request $request, $id)
     {
-        $inspection = Inspection::with(['user', 'room', 'images'])->findOrFail($id);
+        $inspection = Inspection::with(['user', 'room', 'images', 'readBy'])->findOrFail($id);
         $user = $request->user();
 
         if ($inspection->user_id !== $user->id && !$user->hasAnyRole(['super_admin', 'admin', 'supervisor'])) {

@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mobile/app/core/network/api_client.dart';
 import 'package:dio/dio.dart' as dio;
@@ -6,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class AssetInspectionHistoryController extends GetxController {
   final inspections = [].obs;
   final isLoading = true.obs;
+  final dateRange = Rxn<DateTimeRange>();
 
   final currentPage = 1.obs;
   final hasMore = true.obs;
@@ -19,6 +21,11 @@ class AssetInspectionHistoryController extends GetxController {
     fetchInspections();
   }
 
+  void clearFilters() {
+    dateRange.value = null;
+    fetchInspections(refresh: true);
+  }
+
   Future<void> fetchInspections({bool refresh = false}) async {
     if (refresh) {
       currentPage.value = 1;
@@ -30,8 +37,16 @@ class AssetInspectionHistoryController extends GetxController {
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('auth_token');
+      
+      String url = '/asset-inspections?page=${currentPage.value}';
+      if (dateRange.value != null) {
+        final start = "${dateRange.value!.start.year}-${dateRange.value!.start.month.toString().padLeft(2, '0')}-${dateRange.value!.start.day.toString().padLeft(2, '0')}";
+        final end = "${dateRange.value!.end.year}-${dateRange.value!.end.month.toString().padLeft(2, '0')}-${dateRange.value!.end.day.toString().padLeft(2, '0')}";
+        url += '&start_date=$start&end_date=$end';
+      }
+
       final response = await _dio.get(
-        '/asset-inspections?page=${currentPage.value}',
+        url,
         options: dio.Options(headers: {'Authorization': 'Bearer $token'}),
       );
       
@@ -62,8 +77,16 @@ class AssetInspectionHistoryController extends GetxController {
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('auth_token');
+      
+      String url = '/asset-inspections?page=${currentPage.value}';
+      if (dateRange.value != null) {
+        final start = "${dateRange.value!.start.year}-${dateRange.value!.start.month.toString().padLeft(2, '0')}-${dateRange.value!.start.day.toString().padLeft(2, '0')}";
+        final end = "${dateRange.value!.end.year}-${dateRange.value!.end.month.toString().padLeft(2, '0')}-${dateRange.value!.end.day.toString().padLeft(2, '0')}";
+        url += '&start_date=$start&end_date=$end';
+      }
+
       final response = await _dio.get(
-        '/asset-inspections?page=${currentPage.value}',
+        url,
         options: dio.Options(headers: {'Authorization': 'Bearer $token'}),
       );
       

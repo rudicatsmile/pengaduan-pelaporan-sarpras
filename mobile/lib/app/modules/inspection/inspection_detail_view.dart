@@ -17,7 +17,7 @@ class InspectionDetailView extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Detail Inspeksi #${inspection['id']}'),
+        title: Text('Kinerja Laporan #${inspection['id']}'),
         backgroundColor: Colors.teal,
         foregroundColor: Colors.white,
       ),
@@ -31,6 +31,13 @@ class InspectionDetailView extends StatelessWidget {
             _buildInfoRow('Tanggal', DateFormat('dd MMM yyyy HH:mm').format(DateTime.parse(inspection['created_at']))),
             const SizedBox(height: 12),
             _buildInfoRow('Ruangan', '${inspection['room']?['name']} (${inspection['room']?['building']})'),
+            const SizedBox(height: 12),
+            _buildInfoRow(
+              'Status Baca', 
+              inspection['is_read'].toString() == '1' || inspection['is_read'] == true 
+                  ? (inspection['read_by'] != null ? 'Dibaca oleh: ${inspection['read_by']['name']}' : 'Sudah Dibaca') 
+                  : 'Belum Dibaca'
+            ),
             const SizedBox(height: 24),
             
             Text('Deskripsi', style: context.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),

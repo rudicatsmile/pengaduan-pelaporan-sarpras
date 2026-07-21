@@ -21,6 +21,7 @@ class InspectionController extends GetxController {
   final selectedRoomId = Rxn<int>();
   final selectedFilterBuildingId = Rxn<int>();
   final selectedFilterJobCategoryId = Rxn<int>();
+  final dateRange = Rxn<DateTimeRange>();
   
   final buildings = [].obs;
   final jobCategories = [].obs;
@@ -134,6 +135,11 @@ class InspectionController extends GetxController {
       if (selectedFilterJobCategoryId.value != null) {
         url += '&job_category_id=${selectedFilterJobCategoryId.value}';
       }
+      if (dateRange.value != null) {
+        final start = "${dateRange.value!.start.year}-${dateRange.value!.start.month.toString().padLeft(2, '0')}-${dateRange.value!.start.day.toString().padLeft(2, '0')}";
+        final end = "${dateRange.value!.end.year}-${dateRange.value!.end.month.toString().padLeft(2, '0')}-${dateRange.value!.end.day.toString().padLeft(2, '0')}";
+        url += '&start_date=$start&end_date=$end';
+      }
 
       final response = await _dio.get(
         url,
@@ -167,6 +173,11 @@ class InspectionController extends GetxController {
       }
       if (selectedFilterJobCategoryId.value != null) {
         url += '&job_category_id=${selectedFilterJobCategoryId.value}';
+      }
+      if (dateRange.value != null) {
+        final start = "${dateRange.value!.start.year}-${dateRange.value!.start.month.toString().padLeft(2, '0')}-${dateRange.value!.start.day.toString().padLeft(2, '0')}";
+        final end = "${dateRange.value!.end.year}-${dateRange.value!.end.month.toString().padLeft(2, '0')}-${dateRange.value!.end.day.toString().padLeft(2, '0')}";
+        url += '&start_date=$start&end_date=$end';
       }
 
       final response = await _dio.get(
@@ -259,6 +270,13 @@ class InspectionController extends GetxController {
     } finally {
       isSubmitting.value = false;
     }
+  }
+
+  void clearFilters() {
+    selectedFilterBuildingId.value = null;
+    selectedFilterJobCategoryId.value = null;
+    dateRange.value = null;
+    fetchInspections();
   }
 
   Future<void> markAsRead(int id) async {

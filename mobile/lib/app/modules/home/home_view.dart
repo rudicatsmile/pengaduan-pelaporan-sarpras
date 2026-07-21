@@ -540,36 +540,19 @@ class HomeView extends GetView<HomeController> {
                   ],
                 ),
                 Obx(() {
-                  final hasFilter = historyCtrl.dateRange.value != null;
+                  final hasFilter = historyCtrl.dateRange.value != null ||
+                      historyCtrl.selectedFilterBuildingId.value != null ||
+                      historyCtrl.selectedFilterJobCategoryId.value != null;
                   return IconButton(
                     icon: Icon(
                       hasFilter ? Icons.filter_alt_off : Icons.filter_alt,
                       color: hasFilter ? Colors.red : Colors.teal,
                     ),
-                    onPressed: () async {
+                    onPressed: () {
                       if (hasFilter) {
-                        historyCtrl.dateRange.value = null;
-                        return;
-                      }
-                      final range = await showDateRangePicker(
-                        context: context,
-                        firstDate: DateTime(2020),
-                        lastDate: DateTime.now(),
-                        builder: (context, child) {
-                          return Theme(
-                            data: Theme.of(context).copyWith(
-                              colorScheme: const ColorScheme.light(
-                                primary: Colors.teal,
-                                onPrimary: Colors.white,
-                                onSurface: Colors.black,
-                              ),
-                            ),
-                            child: child!,
-                          );
-                        },
-                      );
-                      if (range != null) {
-                        historyCtrl.dateRange.value = range;
+                        historyCtrl.clearFilters();
+                      } else {
+                        _showPengaduanFilterSheet(context, historyCtrl);
                       }
                     },
                   );
@@ -577,105 +560,6 @@ class HomeView extends GetView<HomeController> {
               ],
             ),
           ),
-          Obx(() {
-            if (controller.userRoles.any((r) => ['super_admin', 'supervisor', 'admin'].contains(r))) {
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('Filter Gedung:', style: context.textTheme.titleMedium),
-                        Expanded(
-                          child: Padding(
-                            padding: const EdgeInsets.only(left: 16.0),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12),
-                              decoration: BoxDecoration(
-                                border: Border.all(color: Colors.grey.shade300),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: DropdownButtonHideUnderline(
-                                child: DropdownButton<dynamic>(
-                                  isExpanded: true,
-                                  hint: const Text('Semua Gedung'),
-                                  value: historyCtrl.selectedFilterBuildingId.value,
-                                  items: [
-                                    const DropdownMenuItem<dynamic>(
-                                      value: null,
-                                      child: Text('Semua Gedung'),
-                                    ),
-                                    const DropdownMenuItem<dynamic>(
-                                      value: 'umum',
-                                      child: Text('Pengaduan Umum (Tanpa Gedung Khusus)'),
-                                    ),
-                                    ...historyCtrl.buildings.map((building) {
-                                      return DropdownMenuItem<dynamic>(
-                                        value: building['id'],
-                                        child: Text(building['name']),
-                                      );
-                                    }).toList(),
-                                  ],
-                                  onChanged: (value) {
-                                    historyCtrl.selectedFilterBuildingId.value = value;
-                                    historyCtrl.fetchReports();
-                                  },
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('Filter Jabatan:', style: context.textTheme.titleMedium),
-                        Expanded(
-                          child: Padding(
-                            padding: const EdgeInsets.only(left: 16.0),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12),
-                              decoration: BoxDecoration(
-                                border: Border.all(color: Colors.grey.shade300),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: DropdownButtonHideUnderline(
-                                child: DropdownButton<int>(
-                                  isExpanded: true,
-                                  hint: const Text('Semua Jabatan'),
-                                  value: historyCtrl.selectedFilterJobCategoryId.value,
-                                  items: [
-                                    const DropdownMenuItem<int>(
-                                      value: null,
-                                      child: Text('Semua Jabatan'),
-                                    ),
-                                    ...historyCtrl.jobCategories.map((jc) {
-                                      return DropdownMenuItem<int>(
-                                        value: jc['id'],
-                                        child: Text(jc['name']),
-                                      );
-                                    }).toList(),
-                                  ],
-                                  onChanged: (value) {
-                                    historyCtrl.selectedFilterJobCategoryId.value = value;
-                                    historyCtrl.fetchReports();
-                                  },
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              );
-            }
-            return const SizedBox.shrink();
-          }),
           Expanded(
             child: Obx(() {
               return RefreshIndicator(
@@ -731,107 +615,248 @@ class HomeView extends GetView<HomeController> {
       );
   }
 
+  void _showPengaduanFilterSheet(BuildContext context, HistoryController historyCtrl) {
+    final homeCtrl = Get.find<HomeController>();
+    
+    // Store temp values for the bottom sheet
+    final tempBuildingId = Rxn<dynamic>(historyCtrl.selectedFilterBuildingId.value);
+    final tempJobCategoryId = Rxn<int>(historyCtrl.selectedFilterJobCategoryId.value);
+    final tempDateRange = Rxn<DateTimeRange>(historyCtrl.dateRange.value);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (context) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+            left: 24,
+            right: 24,
+            top: 24,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Filter Riwayat Laporan', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 20),
+              
+              if (homeCtrl.userRoles.any((r) => ['super_admin', 'supervisor', 'admin'].contains(r))) ...[
+                const Text('Gedung', style: TextStyle(fontWeight: FontWeight.w600)),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey.shade300),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Obx(() => DropdownButtonHideUnderline(
+                    child: DropdownButton<dynamic>(
+                      isExpanded: true,
+                      hint: const Text('Semua Gedung'),
+                      value: tempBuildingId.value,
+                      items: [
+                        const DropdownMenuItem<dynamic>(
+                          value: null,
+                          child: Text('Semua Gedung'),
+                        ),
+                        const DropdownMenuItem<dynamic>(
+                          value: 'umum',
+                          child: Text('Pengaduan Umum (Tanpa Gedung Khusus)'),
+                        ),
+                        ...historyCtrl.buildings.map((building) {
+                          return DropdownMenuItem<dynamic>(
+                            value: building['id'],
+                            child: Text(building['name']),
+                          );
+                        }).toList(),
+                      ],
+                      onChanged: (value) => tempBuildingId.value = value,
+                    ),
+                  )),
+                ),
+                const SizedBox(height: 16),
+                
+                const Text('Jabatan', style: TextStyle(fontWeight: FontWeight.w600)),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey.shade300),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Obx(() => DropdownButtonHideUnderline(
+                    child: DropdownButton<int>(
+                      isExpanded: true,
+                      hint: const Text('Semua Jabatan'),
+                      value: tempJobCategoryId.value,
+                      items: [
+                        const DropdownMenuItem<int>(
+                          value: null,
+                          child: Text('Semua Jabatan'),
+                        ),
+                        ...historyCtrl.jobCategories.map((jc) {
+                          return DropdownMenuItem<int>(
+                            value: jc['id'],
+                            child: Text(jc['name']),
+                          );
+                        }).toList(),
+                      ],
+                      onChanged: (value) => tempJobCategoryId.value = value,
+                    ),
+                  )),
+                ),
+                const SizedBox(height: 16),
+              ],
+              
+              const Text('Rentang Waktu', style: TextStyle(fontWeight: FontWeight.w600)),
+              const SizedBox(height: 8),
+              InkWell(
+                onTap: () async {
+                  final range = await showDateRangePicker(
+                    context: context,
+                    initialDateRange: tempDateRange.value,
+                    firstDate: DateTime(2020),
+                    lastDate: DateTime.now(),
+                    builder: (context, child) {
+                      return Theme(
+                        data: Theme.of(context).copyWith(
+                          colorScheme: const ColorScheme.light(
+                            primary: Colors.teal,
+                            onPrimary: Colors.white,
+                            onSurface: Colors.black,
+                          ),
+                        ),
+                        child: child!,
+                      );
+                    },
+                  );
+                  if (range != null) {
+                    tempDateRange.value = range;
+                  }
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey.shade300),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Obx(() {
+                        if (tempDateRange.value == null) {
+                          return const Text('Pilih rentang waktu', style: TextStyle(color: Colors.grey));
+                        }
+                        final start = tempDateRange.value!.start;
+                        final end = tempDateRange.value!.end;
+                        return Text("${start.day}/${start.month}/${start.year} - ${end.day}/${end.month}/${end.year}");
+                      }),
+                      const Icon(Icons.calendar_today, size: 20, color: Colors.grey),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+              
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () {
+                        tempBuildingId.value = null;
+                        tempJobCategoryId.value = null;
+                        tempDateRange.value = null;
+                      },
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                      child: const Text('Reset'),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        historyCtrl.selectedFilterBuildingId.value = tempBuildingId.value;
+                        historyCtrl.selectedFilterJobCategoryId.value = tempJobCategoryId.value;
+                        historyCtrl.dateRange.value = tempDateRange.value;
+                        historyCtrl.fetchReports();
+                        Navigator.pop(context);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.teal,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                      child: const Text('Terapkan', style: TextStyle(color: Colors.white)),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildInspectionHistory(BuildContext context) {
     final inspectionCtrl = Get.put(import_inspection.InspectionController());
     final homeCtrl = Get.find<HomeController>();
 
     return Column(
       children: [
-        Obx(() {
-          if (homeCtrl.userRoles.any((r) => ['super_admin', 'supervisor', 'admin'].contains(r))) {
-            return Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
+        Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text('Filter Gedung:', style: context.textTheme.titleMedium),
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.only(left: 16.0),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12),
-                            decoration: BoxDecoration(
-                              border: Border.all(color: Colors.grey.shade300),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: DropdownButtonHideUnderline(
-                              child: DropdownButton<int>(
-                                isExpanded: true,
-                                hint: const Text('Semua Gedung'),
-                                value: inspectionCtrl.selectedFilterBuildingId.value,
-                                items: [
-                                  const DropdownMenuItem<int>(
-                                    value: null,
-                                    child: Text('Semua Gedung'),
-                                  ),
-                                  ...inspectionCtrl.buildings.map((building) {
-                                    return DropdownMenuItem<int>(
-                                      value: building['id'],
-                                      child: Text(building['name']),
-                                    );
-                                  }).toList(),
-                                ],
-                                onChanged: (value) {
-                                  inspectionCtrl.selectedFilterBuildingId.value = value;
-                                  inspectionCtrl.fetchInspections();
-                                },
-                              ),
-                            ),
-                          ),
-                        ),
+                  Text('Laporan Kinerja', style: context.textTheme.headlineMedium),
+                  Obx(() {
+                    final range = inspectionCtrl.dateRange.value;
+                    if (range == null) return const SizedBox.shrink();
+                    final start = range.start;
+                    final end = range.end;
+                    final startStr = "${start.day.toString().padLeft(2, '0')}/${start.month.toString().padLeft(2, '0')}/${start.year}";
+                    final endStr = "${end.day.toString().padLeft(2, '0')}/${end.month.toString().padLeft(2, '0')}/${end.year}";
+                    return Padding(
+                      padding: const EdgeInsets.only(top: 4.0),
+                      child: Text(
+                        "$startStr - $endStr",
+                        style: context.textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text('Filter Jabatan:', style: context.textTheme.titleMedium),
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.only(left: 16.0),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12),
-                            decoration: BoxDecoration(
-                              border: Border.all(color: Colors.grey.shade300),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: DropdownButtonHideUnderline(
-                              child: DropdownButton<int>(
-                                isExpanded: true,
-                                hint: const Text('Semua Jabatan'),
-                                value: inspectionCtrl.selectedFilterJobCategoryId.value,
-                                items: [
-                                  const DropdownMenuItem<int>(
-                                    value: null,
-                                    child: Text('Semua Jabatan'),
-                                  ),
-                                  ...inspectionCtrl.jobCategories.map((jc) {
-                                    return DropdownMenuItem<int>(
-                                      value: jc['id'],
-                                      child: Text(jc['name']),
-                                    );
-                                  }).toList(),
-                                ],
-                                onChanged: (value) {
-                                  inspectionCtrl.selectedFilterJobCategoryId.value = value;
-                                  inspectionCtrl.fetchInspections();
-                                },
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                    );
+                  }),
                 ],
               ),
-            );
-          }
-          return const SizedBox.shrink();
-        }),
+              Obx(() {
+                final hasFilter = inspectionCtrl.dateRange.value != null ||
+                    inspectionCtrl.selectedFilterBuildingId.value != null ||
+                    inspectionCtrl.selectedFilterJobCategoryId.value != null;
+                return IconButton(
+                  icon: Icon(
+                    hasFilter ? Icons.filter_alt_off : Icons.filter_alt,
+                    color: hasFilter ? Colors.red : Colors.teal,
+                  ),
+                  onPressed: () {
+                    if (hasFilter) {
+                      inspectionCtrl.clearFilters();
+                    } else {
+                      _showInspectionFilterSheet(context, inspectionCtrl);
+                    }
+                  },
+                );
+              }),
+            ],
+          ),
+        ),
         Expanded(
           child: Obx(() {
             return RefreshIndicator(
@@ -874,25 +899,49 @@ class HomeView extends GetView<HomeController> {
                             title: Row(
                               children: [
                                 Expanded(child: Text(inspection['room']?['name'] ?? 'Tanpa Ruangan')),
-                                if (inspection['is_read'] != null)
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                    decoration: BoxDecoration(
-                                      color: inspection['is_read'].toString() == '1' || inspection['is_read'] == true ? Colors.green[100] : Colors.red[100],
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Text(
-                                      inspection['is_read'].toString() == '1' || inspection['is_read'] == true ? 'Sudah Dibaca' : 'Belum Dibaca',
-                                      style: TextStyle(
-                                        fontSize: 10,
-                                        color: inspection['is_read'].toString() == '1' || inspection['is_read'] == true ? Colors.green[800] : Colors.red[800],
-                                        fontWeight: FontWeight.bold,
+                                  if (inspection['is_read'] != null)
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                      decoration: BoxDecoration(
+                                        color: inspection['is_read'].toString() == '1' || inspection['is_read'] == true ? Colors.green[100] : Colors.red[100],
+                                        borderRadius: BorderRadius.circular(8),
                                       ),
+                                      child: Text(
+                                        inspection['is_read'].toString() == '1' || inspection['is_read'] == true ? 'Sudah Dibaca' : 'Belum Dibaca',
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          color: inspection['is_read'].toString() == '1' || inspection['is_read'] == true ? Colors.green[800] : Colors.red[800],
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                              ],
+                            ),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const SizedBox(height: 4),
+                                Text(inspection['description'] ?? '', maxLines: 2, overflow: TextOverflow.ellipsis),
+                                if ((inspection['is_read'].toString() == '1' || inspection['is_read'] == true) && inspection['read_by'] != null)
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 8.0),
+                                    child: Row(
+                                      children: [
+                                        const Icon(Icons.remove_red_eye_outlined, size: 14, color: Colors.grey),
+                                        const SizedBox(width: 4),
+                                        Expanded(
+                                          child: Text(
+                                            'Dibaca oleh: ${inspection['read_by']['name']}',
+                                            style: const TextStyle(fontSize: 12, color: Colors.grey, fontStyle: FontStyle.italic),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
                               ],
                             ),
-                            subtitle: Text(inspection['description'] ?? '', maxLines: 2, overflow: TextOverflow.ellipsis),
                             trailing: const Icon(Icons.chevron_right),
                             onTap: () {
                               final homeCtrl = Get.find<HomeController>();
@@ -910,7 +959,6 @@ class HomeView extends GetView<HomeController> {
                         );
                       },
                     ),
-                    ),
                   ),
             );
           }),
@@ -919,10 +967,265 @@ class HomeView extends GetView<HomeController> {
     );
   }
 
+  void _showInspectionFilterSheet(BuildContext context, import_inspection.InspectionController inspectionCtrl) {
+    final homeCtrl = Get.find<HomeController>();
+    
+    // Store temp values for the bottom sheet
+    final tempBuildingId = Rxn<int>(inspectionCtrl.selectedFilterBuildingId.value);
+    final tempJobCategoryId = Rxn<int>(inspectionCtrl.selectedFilterJobCategoryId.value);
+    final tempDateRange = Rxn<DateTimeRange>(inspectionCtrl.dateRange.value);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (context) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+            left: 24,
+            right: 24,
+            top: 24,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Filter Laporan Kinerja', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 20),
+              
+              if (homeCtrl.userRoles.any((r) => ['super_admin', 'supervisor', 'admin'].contains(r))) ...[
+                const Text('Gedung', style: TextStyle(fontWeight: FontWeight.w600)),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey.shade300),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Obx(() => DropdownButtonHideUnderline(
+                    child: DropdownButton<int>(
+                      isExpanded: true,
+                      hint: const Text('Semua Gedung'),
+                      value: tempBuildingId.value,
+                      items: [
+                        const DropdownMenuItem<int>(
+                          value: null,
+                          child: Text('Semua Gedung'),
+                        ),
+                        ...inspectionCtrl.buildings.map((building) {
+                          return DropdownMenuItem<int>(
+                            value: building['id'],
+                            child: Text(building['name']),
+                          );
+                        }).toList(),
+                      ],
+                      onChanged: (value) => tempBuildingId.value = value,
+                    ),
+                  )),
+                ),
+                const SizedBox(height: 16),
+                
+                const Text('Jabatan', style: TextStyle(fontWeight: FontWeight.w600)),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey.shade300),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Obx(() => DropdownButtonHideUnderline(
+                    child: DropdownButton<int>(
+                      isExpanded: true,
+                      hint: const Text('Semua Jabatan'),
+                      value: tempJobCategoryId.value,
+                      items: [
+                        const DropdownMenuItem<int>(
+                          value: null,
+                          child: Text('Semua Jabatan'),
+                        ),
+                        ...inspectionCtrl.jobCategories.map((jc) {
+                          return DropdownMenuItem<int>(
+                            value: jc['id'],
+                            child: Text(jc['name']),
+                          );
+                        }).toList(),
+                      ],
+                      onChanged: (value) => tempJobCategoryId.value = value,
+                    ),
+                  )),
+                ),
+                const SizedBox(height: 16),
+              ],
+              
+              const Text('Rentang Waktu', style: TextStyle(fontWeight: FontWeight.w600)),
+              const SizedBox(height: 8),
+              InkWell(
+                onTap: () async {
+                  final range = await showDateRangePicker(
+                    context: context,
+                    initialDateRange: tempDateRange.value,
+                    firstDate: DateTime(2020),
+                    lastDate: DateTime.now(),
+                    builder: (context, child) {
+                      return Theme(
+                        data: Theme.of(context).copyWith(
+                          colorScheme: const ColorScheme.light(
+                            primary: Colors.teal,
+                            onPrimary: Colors.white,
+                            onSurface: Colors.black,
+                          ),
+                        ),
+                        child: child!,
+                      );
+                    },
+                  );
+                  if (range != null) {
+                    tempDateRange.value = range;
+                  }
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey.shade300),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Obx(() {
+                        if (tempDateRange.value == null) {
+                          return const Text('Pilih rentang waktu', style: TextStyle(color: Colors.grey));
+                        }
+                        final start = tempDateRange.value!.start;
+                        final end = tempDateRange.value!.end;
+                        return Text("${start.day}/${start.month}/${start.year} - ${end.day}/${end.month}/${end.year}");
+                      }),
+                      const Icon(Icons.calendar_today, size: 20, color: Colors.grey),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+              
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () {
+                        tempBuildingId.value = null;
+                        tempJobCategoryId.value = null;
+                        tempDateRange.value = null;
+                      },
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                      child: const Text('Reset'),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        inspectionCtrl.selectedFilterBuildingId.value = tempBuildingId.value;
+                        inspectionCtrl.selectedFilterJobCategoryId.value = tempJobCategoryId.value;
+                        inspectionCtrl.dateRange.value = tempDateRange.value;
+                        inspectionCtrl.fetchInspections();
+                        Navigator.pop(context);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.teal,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                      child: const Text('Terapkan', style: TextStyle(color: Colors.white)),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildAssetInspectionHistory(BuildContext context) {
     final historyCtrl = Get.put(AssetInspectionHistoryController());
-    return Obx(() {
-      return RefreshIndicator(
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Inspeksi Aset', style: context.textTheme.headlineMedium),
+                  Obx(() {
+                    final range = historyCtrl.dateRange.value;
+                    if (range == null) return const SizedBox.shrink();
+                    final start = range.start;
+                    final end = range.end;
+                    final startStr = "${start.day.toString().padLeft(2, '0')}/${start.month.toString().padLeft(2, '0')}/${start.year}";
+                    final endStr = "${end.day.toString().padLeft(2, '0')}/${end.month.toString().padLeft(2, '0')}/${end.year}";
+                    return Padding(
+                      padding: const EdgeInsets.only(top: 4.0),
+                      child: Text(
+                        "$startStr - $endStr",
+                        style: context.textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
+                      ),
+                    );
+                  }),
+                ],
+              ),
+              Obx(() {
+                final hasFilter = historyCtrl.dateRange.value != null;
+                return IconButton(
+                  icon: Icon(
+                    hasFilter ? Icons.filter_alt_off : Icons.filter_alt,
+                    color: hasFilter ? Colors.red : Colors.teal,
+                  ),
+                  onPressed: () async {
+                    if (hasFilter) {
+                      historyCtrl.clearFilters();
+                    } else {
+                      final range = await showDateRangePicker(
+                        context: context,
+                        initialDateRange: historyCtrl.dateRange.value,
+                        firstDate: DateTime(2020),
+                        lastDate: DateTime.now(),
+                        builder: (context, child) {
+                          return Theme(
+                            data: Theme.of(context).copyWith(
+                              colorScheme: const ColorScheme.light(
+                                primary: Colors.teal,
+                                onPrimary: Colors.white,
+                                onSurface: Colors.black,
+                              ),
+                            ),
+                            child: child!,
+                          );
+                        },
+                      );
+                      if (range != null) {
+                        historyCtrl.dateRange.value = range;
+                        historyCtrl.fetchInspections(refresh: true);
+                      }
+                    }
+                  },
+                  tooltip: hasFilter ? 'Hapus Filter' : 'Filter Tanggal',
+                );
+              }),
+            ],
+          ),
+        ),
+        Expanded(
+          child: Obx(() {
+            return RefreshIndicator(
         color: Colors.teal,
         onRefresh: () => historyCtrl.fetchInspections(refresh: true),
         child: historyCtrl.isLoading.value && historyCtrl.inspections.isEmpty
@@ -997,8 +1300,11 @@ class HomeView extends GetView<HomeController> {
                       },
                     ),
                   ),
-      );
-    });
+            );
+          }),
+        ),
+      ],
+    );
   }
 
   Widget _buildStatusBadge(String status) {

@@ -35,6 +35,25 @@ class AssetInspectionController extends Controller
             $query->where('user_id', $user->id);
         }
 
+        if ($request->filled('start_date') || $request->filled('end_date')) {
+            $startDate = $request->filled('start_date') 
+                ? \Carbon\Carbon::parse($request->start_date, 'Asia/Jakarta')->startOfDay()->utc() 
+                : null;
+                
+            $endDate = $request->filled('end_date') 
+                ? \Carbon\Carbon::parse($request->end_date, 'Asia/Jakarta')->endOfDay()->utc() 
+                : null;
+
+            if ($startDate && $endDate) {
+                $query->whereBetween('created_at', [$startDate, $endDate]);
+            } elseif ($startDate) {
+                $singleDayEnd = \Carbon\Carbon::parse($request->start_date, 'Asia/Jakarta')->endOfDay()->utc();
+                $query->whereBetween('created_at', [$startDate, $singleDayEnd]);
+            } elseif ($endDate) {
+                $query->where('created_at', '<=', $endDate);
+            }
+        }
+
         return response()->json([
             'success' => true,
             'data' => $query->paginate(10)

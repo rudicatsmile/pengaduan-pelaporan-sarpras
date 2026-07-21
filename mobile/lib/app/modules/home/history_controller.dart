@@ -20,17 +20,7 @@ class HistoryController extends GetxController {
   final isLoadingMore = false.obs;
 
   List get filteredReports {
-    if (dateRange.value == null) return reports.toList();
-    return reports.where((r) {
-      if (r['created_at'] == null) return false;
-      final createdAt = DateTime.parse(r['created_at']);
-      final date = DateTime(createdAt.year, createdAt.month, createdAt.day);
-      final start = DateTime(dateRange.value!.start.year, dateRange.value!.start.month, dateRange.value!.start.day);
-      final end = DateTime(dateRange.value!.end.year, dateRange.value!.end.month, dateRange.value!.end.day);
-      
-      return (date.isAtSameMomentAs(start) || date.isAfter(start)) && 
-             (date.isAtSameMomentAs(end) || date.isBefore(end));
-    }).toList();
+    return reports.toList();
   }
 
   int get activeCount => reports.where((r) => r['status'] == 'baru').length;
@@ -74,6 +64,13 @@ class HistoryController extends GetxController {
     }
   }
 
+  void clearFilters() {
+    selectedFilterBuildingId.value = null;
+    selectedFilterJobCategoryId.value = null;
+    dateRange.value = null;
+    fetchReports();
+  }
+
   Future<void> fetchReports() async {
     isLoading.value = true;
     currentPage.value = 1;
@@ -94,6 +91,11 @@ class HistoryController extends GetxController {
       }
       if (selectedFilterJobCategoryId.value != null) {
         url += '&job_category_id=${selectedFilterJobCategoryId.value}';
+      }
+      if (dateRange.value != null) {
+        final start = "${dateRange.value!.start.year}-${dateRange.value!.start.month.toString().padLeft(2, '0')}-${dateRange.value!.start.day.toString().padLeft(2, '0')}";
+        final end = "${dateRange.value!.end.year}-${dateRange.value!.end.month.toString().padLeft(2, '0')}-${dateRange.value!.end.day.toString().padLeft(2, '0')}";
+        url += '&start_date=$start&end_date=$end';
       }
 
       final response = await _dio.get(
@@ -128,6 +130,11 @@ class HistoryController extends GetxController {
       }
       if (selectedFilterJobCategoryId.value != null) {
         url += '&job_category_id=${selectedFilterJobCategoryId.value}';
+      }
+      if (dateRange.value != null) {
+        final start = "${dateRange.value!.start.year}-${dateRange.value!.start.month.toString().padLeft(2, '0')}-${dateRange.value!.start.day.toString().padLeft(2, '0')}";
+        final end = "${dateRange.value!.end.year}-${dateRange.value!.end.month.toString().padLeft(2, '0')}-${dateRange.value!.end.day.toString().padLeft(2, '0')}";
+        url += '&start_date=$start&end_date=$end';
       }
 
       final response = await _dio.get(
