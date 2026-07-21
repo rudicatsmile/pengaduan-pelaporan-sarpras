@@ -2,6 +2,8 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import Modal from '@/Components/Modal';
+import Pagination from '@/Components/Pagination';
+import PerPageSelector from '@/Components/PerPageSelector';
 import DangerButton from '@/Components/DangerButton';
 import SecondaryButton from '@/Components/SecondaryButton';
 
@@ -88,7 +90,7 @@ export default function Index({ reports, buildings = [], jobCategories = [], fil
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
                     <div className="overflow-hidden bg-white shadow-sm sm:rounded-lg">
                         <div className="p-6 text-gray-900">
-                            <div className="mb-4 flex space-x-4 items-end">
+                            <div className="mb-4 flex flex-wrap gap-4 items-end">
                                 <div className="w-64">
                                     <label htmlFor="building_filter" className="block text-sm font-medium text-gray-700 mb-1">
                                         Filter Gedung
@@ -126,6 +128,35 @@ export default function Index({ reports, buildings = [], jobCategories = [], fil
                                         ))}
                                     </select>
                                 </div>
+                                <div className="flex items-end gap-3 p-3 border border-gray-200 rounded-lg bg-gray-50/50 relative ml-auto">
+                                    <span className="absolute -top-2.5 left-3 bg-white px-2 text-[10px] font-bold text-gray-500 uppercase tracking-wider border border-gray-100 rounded">
+                                        Filter Rentang Waktu
+                                    </span>
+                                    <div className="w-36">
+                                        <label htmlFor="start_date_filter" className="block text-xs font-medium text-gray-500 mb-1">
+                                            Dari Tanggal
+                                        </label>
+                                        <input
+                                            type="date"
+                                            id="start_date_filter"
+                                            className="block w-full rounded-md border-gray-300 py-2 px-3 text-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
+                                            value={filters.start_date || ''}
+                                            onChange={(e) => handleFilterChange('start_date', e.target.value)}
+                                        />
+                                    </div>
+                                    <div className="w-36">
+                                        <label htmlFor="end_date_filter" className="block text-xs font-medium text-gray-500 mb-1">
+                                            Sampai Tanggal
+                                        </label>
+                                        <input
+                                            type="date"
+                                            id="end_date_filter"
+                                            className="block w-full rounded-md border-gray-300 py-2 px-3 text-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
+                                            value={filters.end_date || ''}
+                                            onChange={(e) => handleFilterChange('end_date', e.target.value)}
+                                        />
+                                    </div>
+                                </div>
                             </div>
                             <div className="overflow-x-auto">
                                 <table className="w-full text-left border-collapse min-w-full">
@@ -141,7 +172,7 @@ export default function Index({ reports, buildings = [], jobCategories = [], fil
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {reports.map((report) => (
+                                        {reports.data.map((report) => (
                                             <tr key={report.id} className="hover:bg-gray-50">
                                                 <td className="border-b p-4">#{report.id}</td>
                                                 <td className="border-b p-4 min-w-[150px]">
@@ -169,16 +200,44 @@ export default function Index({ reports, buildings = [], jobCategories = [], fil
                                                     </div>
                                                 </td>
                                                 <td className="border-b p-4">
-                                                    <span className={`px-2 py-1 rounded text-sm ${
-                                                        report.status === 'menunggu' ? 'bg-yellow-100 text-yellow-800' :
-                                                        report.status === 'diverifikasi' ? 'bg-blue-100 text-blue-800' :
-                                                        report.status === 'didelegasikan' ? 'bg-purple-100 text-purple-800' :
-                                                        report.status === 'proses' ? 'bg-indigo-100 text-indigo-800' :
-                                                        report.status === 'selesai' ? 'bg-green-100 text-green-800' :
-                                                        'bg-red-100 text-red-800'
-                                                    }`}>
-                                                        {report.status.replace('_', ' ')}
-                                                    </span>
+                                                    <div className="flex flex-col items-start gap-1">
+                                                        <span className={`inline-flex items-center px-2 py-1 rounded text-sm font-medium ${
+                                                            report.status === 'menunggu' ? 'bg-yellow-100 text-yellow-800' :
+                                                            report.status === 'diverifikasi' ? 'bg-blue-100 text-blue-800' :
+                                                            report.status === 'didelegasikan' ? 'bg-purple-100 text-purple-800' :
+                                                            report.status === 'proses' ? 'bg-indigo-100 text-indigo-800' :
+                                                            report.status === 'selesai' ? 'bg-green-100 text-green-800' :
+                                                            'bg-red-100 text-red-800'
+                                                        }`}>
+                                                            {report.status.replace('_', ' ')}
+                                                        </span>
+                                                        {report.status === 'didelegasikan' && (report.assigned_user || report.assignedUser) && (
+                                                            <div className="flex items-center gap-1.5 mt-0.5">
+                                                                <div className="w-5 h-5 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center text-[10px] font-bold border border-purple-200">
+                                                                    {(report.assigned_user || report.assignedUser).name.charAt(0).toUpperCase()}
+                                                                </div>
+                                                                <span className="text-xs text-gray-500 font-medium">
+                                                                    {(report.assigned_user || report.assignedUser).name}
+                                                                </span>
+                                                            </div>
+                                                        )}
+                                                        {report.status === 'selesai' && report.activities && report.activities.length > 0 && (
+                                                            (() => {
+                                                                const lastUserActivity = [...report.activities].reverse().find(a => a.user);
+                                                                const userSelesai = lastUserActivity ? lastUserActivity.user : null;
+                                                                return userSelesai ? (
+                                                                    <div className="flex items-center gap-1.5 mt-0.5">
+                                                                        <div className="w-5 h-5 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-[10px] font-bold border border-green-200">
+                                                                            {userSelesai.name.charAt(0).toUpperCase()}
+                                                                        </div>
+                                                                        <span className="text-xs text-gray-500 font-medium">
+                                                                            {userSelesai.name}
+                                                                        </span>
+                                                                    </div>
+                                                                ) : null;
+                                                            })()
+                                                        )}
+                                                    </div>
                                                 </td>
                                                 <td className="border-b p-4">
                                                     <div className="flex items-center space-x-3">
@@ -203,13 +262,25 @@ export default function Index({ reports, buildings = [], jobCategories = [], fil
                                                 </td>
                                             </tr>
                                         ))}
-                                        {reports.length === 0 && (
+                                        {reports.data.length === 0 && (
                                             <tr>
                                                 <td colSpan="7" className="text-center p-4">Tidak ada laporan</td>
                                             </tr>
                                         )}
                                     </tbody>
                                 </table>
+                            </div>
+                            <div className="flex items-center justify-between mt-6 mb-4">
+                                <div className="flex-1">
+                                    <PerPageSelector 
+                                        value={filters.per_page || 10} 
+                                        onChange={(val) => handleFilterChange('per_page', val)} 
+                                    />
+                                </div>
+                                <div className="flex-1 flex justify-center">
+                                    <Pagination links={reports.links} />
+                                </div>
+                                <div className="flex-1"></div>
                             </div>
                         </div>
                     </div>

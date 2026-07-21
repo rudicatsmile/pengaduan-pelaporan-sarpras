@@ -3,12 +3,22 @@ import { Head, Link, router, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import dayjs from 'dayjs';
 import Modal from '@/Components/Modal';
+import Pagination from '@/Components/Pagination';
+import PerPageSelector from '@/Components/PerPageSelector';
 import DangerButton from '@/Components/DangerButton';
 import SecondaryButton from '@/Components/SecondaryButton';
 
-export default function Index({ auth, inspections }) {
+export default function Index({ auth, inspections, filters = {} }) {
     const { flash } = usePage().props;
     const isSuperAdmin = auth.user?.roles?.includes('super_admin');
+
+    const handleFilterChange = (key, value) => {
+        router.get(
+            route('asset-inspections.index'),
+            { ...filters, [key]: value },
+            { preserveState: true, replace: true }
+        );
+    };
 
     const [confirmingDeletion, setConfirmingDeletion] = useState(false);
     const [inspectionToDelete, setInspectionToDelete] = useState(null);
@@ -67,6 +77,37 @@ export default function Index({ auth, inspections }) {
                     
                     <div className="overflow-hidden bg-white shadow-sm sm:rounded-lg">
                         <div className="p-6 text-gray-900">
+                            <div className="mb-4 flex flex-wrap gap-4 items-end">
+                                <div className="flex items-end gap-3 p-3 border border-gray-200 rounded-lg bg-gray-50/50 relative ml-auto">
+                                    <span className="absolute -top-2.5 left-3 bg-white px-2 text-[10px] font-bold text-gray-500 uppercase tracking-wider border border-gray-100 rounded">
+                                        Filter Rentang Waktu
+                                    </span>
+                                    <div className="w-36">
+                                        <label htmlFor="start_date_filter" className="block text-xs font-medium text-gray-500 mb-1">
+                                            Dari Tanggal
+                                        </label>
+                                        <input
+                                            type="date"
+                                            id="start_date_filter"
+                                            className="block w-full rounded-md border-gray-300 py-2 px-3 text-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
+                                            value={filters.start_date || ''}
+                                            onChange={(e) => handleFilterChange('start_date', e.target.value)}
+                                        />
+                                    </div>
+                                    <div className="w-36">
+                                        <label htmlFor="end_date_filter" className="block text-xs font-medium text-gray-500 mb-1">
+                                            Sampai Tanggal
+                                        </label>
+                                        <input
+                                            type="date"
+                                            id="end_date_filter"
+                                            className="block w-full rounded-md border-gray-300 py-2 px-3 text-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
+                                            value={filters.end_date || ''}
+                                            onChange={(e) => handleFilterChange('end_date', e.target.value)}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
                             <div className="overflow-x-auto">
                                 <table className="w-full text-left text-sm text-gray-500">
                                     <thead className="bg-gray-50 text-xs uppercase text-gray-700">
@@ -80,12 +121,12 @@ export default function Index({ auth, inspections }) {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {inspections.length === 0 ? (
+                                        {inspections.data.length === 0 ? (
                                             <tr>
                                                 <td colSpan="6" className="px-6 py-4 text-center">Belum ada inspeksi aset</td>
                                             </tr>
                                         ) : (
-                                            inspections.map((inspection) => (
+                                            inspections.data.map((inspection) => (
                                                 <tr key={inspection.id} className="border-b bg-white">
                                                     <td className="px-6 py-4">#{inspection.id}</td>
                                                     <td className="px-6 py-4">{dayjs(inspection.created_at).format('DD MMM YYYY HH:mm')}</td>
@@ -124,6 +165,18 @@ export default function Index({ auth, inspections }) {
                                         )}
                                     </tbody>
                                 </table>
+                            </div>
+                            <div className="flex items-center justify-between mt-6 mb-4">
+                                <div className="flex-1">
+                                    <PerPageSelector 
+                                        value={filters.per_page || 10} 
+                                        onChange={(val) => handleFilterChange('per_page', val)} 
+                                    />
+                                </div>
+                                <div className="flex-1 flex justify-center">
+                                    <Pagination links={inspections.links} />
+                                </div>
+                                <div className="flex-1"></div>
                             </div>
                         </div>
                     </div>

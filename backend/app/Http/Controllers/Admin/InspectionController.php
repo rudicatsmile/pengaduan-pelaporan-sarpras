@@ -15,7 +15,7 @@ class InspectionController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-        $query = Inspection::with(['user', 'room.floor.building'])->latest();
+        $query = Inspection::with(['user', 'room.floor.building', 'readBy'])->latest();
 
         $allowedBuildingIds = null;
         if ($user->hasAnyRole(['admin', 'super_admin', 'supervisor'])) {
@@ -41,6 +41,25 @@ class InspectionController extends Controller
             });
         }
 
+        if ($request->filled('start_date') || $request->filled('end_date')) {
+            $startDate = $request->filled('start_date') 
+                ? \Carbon\Carbon::parse($request->start_date, 'Asia/Jakarta')->startOfDay()->utc() 
+                : null;
+                
+            $endDate = $request->filled('end_date') 
+                ? \Carbon\Carbon::parse($request->end_date, 'Asia/Jakarta')->endOfDay()->utc() 
+                : null;
+
+            if ($startDate && $endDate) {
+                $query->whereBetween('created_at', [$startDate, $endDate]);
+            } elseif ($startDate) {
+                $singleDayEnd = \Carbon\Carbon::parse($request->start_date, 'Asia/Jakarta')->endOfDay()->utc();
+                $query->whereBetween('created_at', [$startDate, $singleDayEnd]);
+            } elseif ($endDate) {
+                $query->where('created_at', '<=', $endDate);
+            }
+        }
+
         $buildingsQuery = \App\Models\Building::query();
         if ($user->hasAnyRole(['admin', 'supervisor']) && $allowedBuildingIds !== null) {
             $buildingsQuery->whereIn('id', $allowedBuildingIds);
@@ -50,11 +69,52 @@ class InspectionController extends Controller
         $jobCategories = \App\Models\JobCategory::all();
 
         return Inertia::render('Admin/Inspection/Index', [
-            'inspections' => $query->get(),
+            'inspections' => $query->paginate(request('per_page', 10))->withQueryString(),
             'buildings' => $buildings,
             'jobCategories' => $jobCategories,
-            'filters' => request()->only(['building_id', 'job_category_id']),
+            'filters' => request()->only(['building_id', 'job_category_id', 'per_page', 'start_date', 'end_date']),
         ]);
+    }
+
+    public function rekapKinerja(Request $request)
+    {
+        $startDate = $request->filled('start_date') 
+            ? \Carbon\Carbon::parse($request->start_date, 'Asia/Jakarta')->startOfDay()->utc() 
+            : null;
+            
+        $endDate = $request->filled('end_date') 
+            ? \Carbon\Carbon::parse($request->end_date, 'Asia/Jakarta')->endOfDay()->utc() 
+            : null;
+
+        // Ambil semua user yang memiliki kategori jabatan
+        $users = \App\Models\User::whereNotNull('job_category_id')
+            ->with('jobCategory')
+            ->get();
+
+        $rekap = $users->map(function($user) use ($startDate, $endDate, $request) {
+            $query = Inspection::where('user_id', $user->id);
+
+            if ($startDate && $endDate) {
+                $query->whereBetween('created_at', [$startDate, $endDate]);
+            } elseif ($startDate) {
+                $singleDayEnd = \Carbon\Carbon::parse($request->start_date, 'Asia/Jakarta')->endOfDay()->utc();
+                $query->whereBetween('created_at', [$startDate, $singleDayEnd]);
+            } elseif ($endDate) {
+                $query->where('created_at', '<=', $endDate);
+            }
+
+            $count = $query->count();
+            return [
+                'id' => $user->id,
+                'name' => $user->name,
+                'avatar' => $user->avatar,
+                'job_category' => $user->jobCategory->name ?? '-',
+                'has_reported' => $count > 0,
+                'report_count' => $count
+            ];
+        });
+
+        return response()->json($rekap);
     }
 
     public function show($id)
@@ -80,7 +140,10 @@ class InspectionController extends Controller
         }
 
         if (!$inspection->is_read && $user->hasAnyRole(['super_admin', 'admin', 'supervisor'])) {
-            $inspection->update(['is_read' => true]);
+            $inspection->update([
+                'is_read' => true,
+                'read_by_id' => $user->id
+            ]);
         }
 
         return Inertia::render('Admin/Inspection/Show', [

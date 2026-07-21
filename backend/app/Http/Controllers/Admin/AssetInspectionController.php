@@ -32,9 +32,29 @@ class AssetInspectionController extends Controller
             $query->where('user_id', $user->id);
         }
 
-        $inspections = $query->get();
+        if (request()->filled('start_date') || request()->filled('end_date')) {
+            $startDate = request()->filled('start_date') 
+                ? \Carbon\Carbon::parse(request('start_date'), 'Asia/Jakarta')->startOfDay()->utc() 
+                : null;
+                
+            $endDate = request()->filled('end_date') 
+                ? \Carbon\Carbon::parse(request('end_date'), 'Asia/Jakarta')->endOfDay()->utc() 
+                : null;
+
+            if ($startDate && $endDate) {
+                $query->whereBetween('created_at', [$startDate, $endDate]);
+            } elseif ($startDate) {
+                $singleDayEnd = \Carbon\Carbon::parse(request('start_date'), 'Asia/Jakarta')->endOfDay()->utc();
+                $query->whereBetween('created_at', [$startDate, $singleDayEnd]);
+            } elseif ($endDate) {
+                $query->where('created_at', '<=', $endDate);
+            }
+        }
+
+        $inspections = $query->paginate(request('per_page', 10))->withQueryString();
         return Inertia::render('Admin/AssetInspection/Index', [
-            'inspections' => $inspections
+            'inspections' => $inspections,
+            'filters' => request()->only(['per_page', 'start_date', 'end_date']),
         ]);
     }
 

@@ -16,7 +16,7 @@ class ReportController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-        $query = Report::with(['user', 'category', 'room.floor.building'])->latest();
+        $query = Report::with(['user', 'category', 'room.floor.building', 'assignedUser', 'activities.user'])->latest();
 
         if ($user->hasRole('petugas')) {
             $query->where(function($q) use ($user) {
@@ -52,6 +52,25 @@ class ReportController extends Controller
             });
         }
 
+        if ($request->filled('start_date') || $request->filled('end_date')) {
+            $startDate = $request->filled('start_date') 
+                ? \Carbon\Carbon::parse($request->start_date, 'Asia/Jakarta')->startOfDay()->utc() 
+                : null;
+                
+            $endDate = $request->filled('end_date') 
+                ? \Carbon\Carbon::parse($request->end_date, 'Asia/Jakarta')->endOfDay()->utc() 
+                : null;
+
+            if ($startDate && $endDate) {
+                $query->whereBetween('created_at', [$startDate, $endDate]);
+            } elseif ($startDate) {
+                $singleDayEnd = \Carbon\Carbon::parse($request->start_date, 'Asia/Jakarta')->endOfDay()->utc();
+                $query->whereBetween('created_at', [$startDate, $singleDayEnd]);
+            } elseif ($endDate) {
+                $query->where('created_at', '<=', $endDate);
+            }
+        }
+
         $buildingsQuery = \App\Models\Building::query();
         if ($user->hasAnyRole(['admin', 'supervisor']) && $allowedBuildingIds !== null) {
             $buildingsQuery->whereIn('id', $allowedBuildingIds);
@@ -61,10 +80,10 @@ class ReportController extends Controller
         $jobCategories = \App\Models\JobCategory::all();
 
         return Inertia::render('Admin/Report/Index', [
-            'reports' => $query->get(),
+            'reports' => $query->paginate(request('per_page', 10))->withQueryString(),
             'buildings' => $buildings,
             'jobCategories' => $jobCategories,
-            'filters' => request()->only(['building_id', 'job_category_id']),
+            'filters' => request()->only(['building_id', 'job_category_id', 'per_page', 'start_date', 'end_date']),
         ]);
     }
 

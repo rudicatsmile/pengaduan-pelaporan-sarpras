@@ -14,6 +14,7 @@ class Inspection extends Model
         'room_id',
         'description',
         'is_read',
+        'read_by_id',
         'notes',
     ];
 
@@ -30,5 +31,10 @@ class Inspection extends Model
     public function images()
     {
         return $this->hasMany(InspectionImage::class);
+    }
+
+    public function readBy()
+    {
+        return $this->belongsTo(User::class, 'read_by_id');
     }
 }

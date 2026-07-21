@@ -48,6 +48,7 @@ Route::middleware('auth')->group(function () {
 
     // Inspection Routes
     Route::get('/inspections', [\App\Http\Controllers\Admin\InspectionController::class, 'index'])->name('inspections.index');
+    Route::get('/inspections/rekap-kinerja', [\App\Http\Controllers\Admin\InspectionController::class, 'rekapKinerja'])->name('inspections.rekap');
     Route::get('/inspections/{id}', [\App\Http\Controllers\Admin\InspectionController::class, 'show'])->name('inspections.show');
     Route::post('/inspections/{id}/notes', [\App\Http\Controllers\Admin\InspectionController::class, 'updateNotes'])->name('inspections.notes');
     Route::delete('/inspections/{id}', [\App\Http\Controllers\Admin\InspectionController::class, 'destroy'])->name('inspections.destroy');
