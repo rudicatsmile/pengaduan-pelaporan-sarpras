@@ -38,4 +38,5 @@ and this project adheres to Semantic Versioning.
 - [16 Juli 2026] [Antigravity] **Bug Scope Laporan Supervisor (API/Mobile)**: Diperbaiki kelemahan keamanan data di `Api\ReportController` di mana role Supervisor dan Super Admin sebelumnya dapat melihat semua laporan tanpa dibatasi oleh izin akses *manage-building*. Kini, batasan akses (scope) diterapkan dengan benar di Mobile App, identik dengan aturan yang berlaku di Web Admin.
 
 ### Changed
+- [23 Juli 2026] [Antigravity] Mengubah nama aplikasi (`APP_NAME`) di file `.env` dan `.env.example` dari "Laravel" menjadi "SIGAP Yalwash9" agar judul pada *browser tab* terlihat lebih profesional.
 - [16 Juli 2026] [Antigravity] Refaktor filter `building_id` untuk mendukung kombinasi tipe data `integer` (ID gedung) dan `string` (`'umum'`) baik di `ReportController` (Admin/API) maupun *state management* di `history_controller.dart`.
