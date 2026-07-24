@@ -60,7 +60,7 @@ class TaskController extends Controller
 
         $request->validate([
             'resolution_notes' => 'nullable|string',
-            'attachment' => 'nullable|image|mimes:jpeg,png,jpg|max:2048'
+            'attachment' => 'nullable|image|mimes:jpeg,png,jpg|max:5120'
         ]);
 
         $report->update(['status' => 'selesai']);
@@ -78,7 +78,7 @@ class TaskController extends Controller
         if ($request->hasFile('attachment')) {
             $path = $request->file('attachment')->store('attachments', 'public');
             $report->attachments()->create([
-                'file_path' => asset('storage/' . $path),
+                'file_path' => $path,
                 'file_type' => 'image',
             ]);
         }

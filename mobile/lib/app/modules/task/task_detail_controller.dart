@@ -71,7 +71,10 @@ class TaskDetailController extends GetxController {
 
   Future<void> pickImage() async {
     final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.camera);
+    final pickedFile = await picker.pickImage(
+      source: ImageSource.camera,
+      imageQuality: 50,
+    );
     
     if (pickedFile != null) {
       selectedImage.value = File(pickedFile.path);
