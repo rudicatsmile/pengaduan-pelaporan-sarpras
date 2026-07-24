@@ -4,6 +4,8 @@ import { useState } from 'react';
 import Modal from '@/Components/Modal';
 import Dropdown from '@/Components/Dropdown';
 import axios from 'axios';
+import Lightbox from "yet-another-react-lightbox";
+import "yet-another-react-lightbox/styles.css";
 
 export default function Index({ users, roles, jobCategories }) {
     const [editing, setEditing] = useState(null);
@@ -13,6 +15,7 @@ export default function Index({ users, roles, jobCategories }) {
     const [availableBuildings, setAvailableBuildings] = useState([]);
     const [assignedBuildingIds, setAssignedBuildingIds] = useState([]);
     const [loadingBuildings, setLoadingBuildings] = useState(false);
+    const [lightboxUrl, setLightboxUrl] = useState(null);
     const { data, setData, post, put, delete: destroy, processing, reset, errors, clearErrors } = useForm({
         name: '',
         email: '',
@@ -163,6 +166,7 @@ export default function Index({ users, roles, jobCategories }) {
                                     <thead>
                                         <tr>
                                             <th className="border-b p-4">ID</th>
+                                            <th className="border-b p-4">Photo</th>
                                             <th className="border-b p-4">Nama</th>
                                             <th className="border-b p-4">Email / No. WA</th>
                                             <th className="border-b p-4">Kategori Jabatan</th>
@@ -174,6 +178,20 @@ export default function Index({ users, roles, jobCategories }) {
                                         {filteredUsers.map((user) => (
                                             <tr key={user.id} className="hover:bg-gray-50">
                                                 <td className="border-b p-4">#{user.id}</td>
+                                                <td className="border-b p-4">
+                                                    {user.avatar ? (
+                                                        <img 
+                                                            className="h-10 w-10 rounded-full object-cover cursor-pointer hover:opacity-80 transition-opacity" 
+                                                            src={user.avatar} 
+                                                            alt={user.name} 
+                                                            onClick={() => setLightboxUrl(user.avatar)}
+                                                        />
+                                                    ) : (
+                                                        <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold">
+                                                            {user.name.charAt(0).toUpperCase()}
+                                                        </div>
+                                                    )}
+                                                </td>
                                                 <td className="border-b p-4">{user.name}</td>
                                                 <td className="border-b p-4">
                                                     <div>{user.email}</div>
@@ -226,7 +244,7 @@ export default function Index({ users, roles, jobCategories }) {
                                         ))}
                                         {filteredUsers.length === 0 && (
                                             <tr>
-                                                <td colSpan="5" className="text-center p-4">Belum ada user</td>
+                                                <td colSpan="7" className="text-center p-4">Belum ada user</td>
                                             </tr>
                                         )}
                                     </tbody>
@@ -410,6 +428,14 @@ export default function Index({ users, roles, jobCategories }) {
                     </div>
                 </div>
             </Modal>
+
+            {lightboxUrl && (
+                <Lightbox
+                    open={!!lightboxUrl}
+                    close={() => setLightboxUrl(null)}
+                    slides={[{ src: lightboxUrl }]}
+                />
+            )}
         </AuthenticatedLayout>
     );
 }

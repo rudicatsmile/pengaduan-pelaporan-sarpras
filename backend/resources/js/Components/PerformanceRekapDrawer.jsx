@@ -152,7 +152,7 @@ export default function PerformanceRekapDrawer({ isOpen, onClose, filters }) {
                                             <li key={user.id} className="py-4 flex items-center justify-between">
                                                 <div className="flex items-center">
                                                     {user.avatar ? (
-                                                        <img className="h-10 w-10 rounded-full object-cover" src={`/storage/${user.avatar}`} alt="" />
+                                                        <img className="h-10 w-10 rounded-full object-cover" src={user.avatar} alt="" />
                                                     ) : (
                                                         <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold">
                                                             {user.name.charAt(0).toUpperCase()}
