@@ -6,7 +6,6 @@ import 'profile_controller.dart';
 import 'package:mobile/app/modules/inspection/inspection_controller.dart' as import_inspection;
 import 'package:mobile/app/modules/asset_inspection/asset_inspection_history_controller.dart';
 import 'dart:typed_data';
-import 'dart:ui';
 
 class HomeView extends GetView<HomeController> {
   const HomeView({Key? key}) : super(key: key);
@@ -16,7 +15,6 @@ class HomeView extends GetView<HomeController> {
     Get.put(ProfileController()); // Inisialisasi awal agar bisa dipakai di dashboard
 
     return Scaffold(
-      extendBody: true, // Untuk efek floating
       body: Obx(() => IndexedStack(
         index: controller.currentIndex.value,
         children: [
@@ -25,86 +23,42 @@ class HomeView extends GetView<HomeController> {
           controller.userRole.value == 'tamu' ? _buildGuestLoginPrompt(context, 'Profil') : _buildProfile(context),
         ],
       )),
-      bottomNavigationBar: _buildFloatingNavigationBar(context),
-    );
-  }
-
-  Widget _buildFloatingNavigationBar(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 20, right: 20, bottom: 8),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.85),
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: Colors.white.withOpacity(0.4), width: 1.5),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 20,
-                  offset: const Offset(0, 10),
-                ),
-              ],
+      bottomNavigationBar: Obx(() {
+        int barIndex = controller.currentIndex.value;
+        if (barIndex >= 1) barIndex += 1;
+        return BottomNavigationBar(
+          currentIndex: barIndex,
+          type: BottomNavigationBarType.fixed,
+          selectedItemColor: const Color(0xFF047857),
+          unselectedItemColor: Colors.grey,
+          onTap: (index) {
+            if (index == 1) {
+              _showReportOptions(context);
+            } else {
+              int pageIndex = index > 1 ? index - 1 : index;
+              controller.changePage(pageIndex);
+            }
+          },
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home),
+              label: 'Home',
             ),
-            child: Obx(() {
-              int barIndex = controller.currentIndex.value;
-              if (barIndex >= 1) barIndex += 1;
-              return Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _buildNavItem(icon: Icons.home_rounded, label: 'Home', index: 0, currentIndex: barIndex, context: context),
-                  _buildNavItem(icon: Icons.add_circle, label: 'Reports', index: 1, currentIndex: barIndex, context: context),
-                  _buildNavItem(icon: Icons.history_rounded, label: 'History', index: 2, currentIndex: barIndex, context: context),
-                  _buildNavItem(icon: Icons.person_rounded, label: 'Profile', index: 3, currentIndex: barIndex, context: context),
-                ],
-              );
-            }),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNavItem({required IconData icon, required String label, required int index, required int currentIndex, required BuildContext context}) {
-    final isSelected = index == currentIndex;
-    final color = isSelected ? const Color(0xFF047857) : Colors.grey.shade400;
-
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(16),
-        onTap: () {
-          if (index == 1) {
-            _showReportOptions(context);
-          } else {
-            int pageIndex = index > 1 ? index - 1 : index;
-            controller.changePage(pageIndex);
-          }
-        },
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, color: color, size: 26),
-              const SizedBox(height: 4),
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
-                height: 4,
-                width: isSelected ? 20 : 0,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF047857),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.add_circle_outline),
+              label: 'Reports',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.history),
+              label: 'History',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.person),
+              label: 'Profile',
+            ),
+          ],
+        );
+      }),
     );
   }
 
@@ -112,25 +66,14 @@ class HomeView extends GetView<HomeController> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (context) => SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 5,
-                  margin: const EdgeInsets.only(bottom: 24),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(2.5),
-                  ),
-                ),
-              ),
-              const Text('Buat Laporan Baru', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              const Text('Buat Laporan Baru', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 20),
             ListTile(
               leading: const CircleAvatar(backgroundColor: Colors.teal, child: Icon(Icons.qr_code_scanner, color: Colors.white)),
@@ -182,24 +125,13 @@ class HomeView extends GetView<HomeController> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (context) => Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 5,
-                margin: const EdgeInsets.only(bottom: 24),
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(2.5),
-                ),
-              ),
-            ),
-            const Text('Metode Inspeksi Aset', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            const Text('Metode Inspeksi Aset', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 20),
             ListTile(
               leading: const CircleAvatar(backgroundColor: Colors.blue, child: Icon(Icons.qr_code_scanner, color: Colors.white)),
@@ -246,90 +178,66 @@ class HomeView extends GetView<HomeController> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16).copyWith(bottom: 24),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                 width: double.infinity,
-                color: Colors.white,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                decoration: const BoxDecoration(
+                  color: Color(0xFF047857),
+                  borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(30),
+                    bottomRight: Radius.circular(30),
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child: Row(
-                        children: [
-                          Obx(() {
-                            final profileCtrl = Get.find<ProfileController>();
-                            if (profileCtrl.avatarUrl.value.isNotEmpty) {
-                              return ClipOval(
-                                child: Image.network(
-                                  profileCtrl.avatarUrl.value,
-                                  width: 48,
-                                  height: 48,
-                                  fit: BoxFit.cover,
-                                ),
-                              );
-                            }
-                            return Container(
-                              width: 48,
-                              height: 48,
-                              decoration: const BoxDecoration(
-                                color: Colors.black12,
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(Icons.person, color: Colors.black54, size: 28),
-                            );
-                          }),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Obx(() => Text(
-                                  controller.userName.value,
-                                  style: context.textTheme.titleMedium?.copyWith(
-                                    color: Colors.black87,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                )),
-                                const SizedBox(height: 2),
-                                Row(
-                                  children: [
-                                    const Icon(Icons.location_on_outlined, size: 14, color: Colors.grey),
-                                    const SizedBox(width: 4),
-                                    Expanded(
-                                      child: Obx(() => Text(
-                                        controller.userRole.value.toUpperCase(),
-                                        style: context.textTheme.bodySmall?.copyWith(
-                                          color: Colors.grey,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      )),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Obx(() => Text(
+                          controller.appName.value,
+                          style: context.textTheme.titleMedium?.copyWith(
+                            color: Colors.white.withOpacity(0.9),
+                            fontWeight: FontWeight.bold,
                           ),
-                        ],
-                      ),
+                        )),
+                        const Icon(Icons.notifications_none, color: Colors.white),
+                      ],
                     ),
-                    const SizedBox(width: 12),
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Obx(() {
+                          final profileCtrl = Get.find<ProfileController>();
+                          if (profileCtrl.avatarUrl.value.isNotEmpty) {
+                            return ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: Image.network(
+                                profileCtrl.avatarUrl.value,
+                                width: 48,
+                                height: 48,
+                                fit: BoxFit.cover,
+                              ),
+                            );
+                          }
+                          return Container(
+                            width: 48,
+                            height: 48,
+                            decoration: BoxDecoration(
+                              color: Colors.white24,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Icon(Icons.person, color: Colors.white),
+                          );
+                        }),
+                        const SizedBox(width: 12),
+                        Obx(() => Text(
+                          '${controller.userName.value}! 🌱',
+                          style: context.textTheme.titleLarge?.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
                           ),
-                        ],
-                      ),
-                      child: const Icon(Icons.notifications_none, color: Colors.black87),
+                        )),
+                      ],
                     ),
                   ],
                 ),
@@ -340,57 +248,38 @@ class HomeView extends GetView<HomeController> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Obx(() => Text(
-                      controller.appName.value.toUpperCase(),
-                      style: context.textTheme.titleSmall?.copyWith(
-                        color: Colors.grey.shade600,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 1.2,
-                      ),
-                    )),
-                    const SizedBox(height: 12),
+                    // Text('Facility Overview', style: context.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+                    // const SizedBox(height: 16),
                     
-                    Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        onTap: () => Get.toNamed('/report/qr'),
-                        borderRadius: BorderRadius.circular(16),
-                        child: Ink(
-                          padding: const EdgeInsets.all(14),
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [Color(0xFF047857), Color(0xFF059669)],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
+                    InkWell(
+                      onTap: () => Get.toNamed('/report/qr'),
+                      child: Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF047857),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Icon(Icons.qr_code_scanner, color: Colors.white, size: 32),
                             ),
-                            borderRadius: BorderRadius.circular(16),
-                            boxShadow: [
-                              BoxShadow(color: const Color(0xFF047857).withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 4)),
-                            ],
-                          ),
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.2),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: const Icon(Icons.qr_code_scanner, color: Colors.white, size: 26),
+                            const SizedBox(width: 16),
+                            const Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('Laporan Sarpras', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
+                                  Text('Tap untuk membuat laporan', style: TextStyle(color: Colors.white70, fontSize: 12)),
+                                ],
                               ),
-                              const SizedBox(width: 14),
-                              const Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text('Laporan Sarpras', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
-                                    SizedBox(height: 2),
-                                    Text('Tap untuk membuat laporan', style: TextStyle(color: Colors.white70, fontSize: 11)),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
@@ -400,47 +289,35 @@ class HomeView extends GetView<HomeController> {
                       if (controller.userRoles.contains('petugas')) {
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 12.0),
-                          child: Material(
-                            color: Colors.transparent,
-                            child: InkWell(
-                              onTap: () => Get.toNamed('/task/list'),
-                              borderRadius: BorderRadius.circular(16),
-                              child: Ink(
-                                padding: const EdgeInsets.all(14),
-                                decoration: BoxDecoration(
-                                  gradient: const LinearGradient(
-                                    colors: [Color(0xFF1D4ED8), Color(0xFF3B82F6)],
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
+                          child: InkWell(
+                            onTap: () => Get.toNamed('/task/list'),
+                            child: Container(
+                              padding: const EdgeInsets.all(20),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF1D4ED8),
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withOpacity(0.2),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: const Icon(Icons.assignment, color: Colors.white, size: 32),
                                   ),
-                                  borderRadius: BorderRadius.circular(16),
-                                  boxShadow: [
-                                    BoxShadow(color: const Color(0xFF1D4ED8).withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 4)),
-                                  ],
-                                ),
-                                child: Row(
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.all(10),
-                                      decoration: BoxDecoration(
-                                        color: Colors.white.withOpacity(0.2),
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      child: const Icon(Icons.assignment, color: Colors.white, size: 26),
+                                  const SizedBox(width: 16),
+                                  const Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text('Daftar Tugas', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
+                                        Text('Lihat tugas yang didelegasikan', style: TextStyle(color: Colors.white70, fontSize: 12)),
+                                      ],
                                     ),
-                                    const SizedBox(width: 14),
-                                    const Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text('Daftar Tugas', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
-                                          SizedBox(height: 2),
-                                          Text('Lihat tugas yang didelegasikan', style: TextStyle(color: Colors.white70, fontSize: 11)),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                                  ),
+                                ],
                               ),
                             ),
                           ),
@@ -517,13 +394,12 @@ class HomeView extends GetView<HomeController> {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 16,
-            spreadRadius: 2,
-            offset: const Offset(0, 8),
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -532,20 +408,20 @@ class HomeView extends GetView<HomeController> {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(title, style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: Colors.grey.shade700)),
+          Text(title, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: Colors.black87)),
           const Spacer(),
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
                   color: iconColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                child: Icon(icon, color: iconColor, size: 22),
+                child: Icon(icon, color: iconColor, size: 20),
               ),
               const SizedBox(width: 12),
-              Text(count, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 26, color: iconColor)),
+              Text(count, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
             ],
           ),
         ],
@@ -571,71 +447,30 @@ class HomeView extends GetView<HomeController> {
 
     String roomName = report['room'] != null ? report['room']['name'] : report['location_text'] ?? 'Umum';
 
-    return Container(
+    return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: 0,
+      color: Colors.white,
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        leading: Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: iconColor.withOpacity(0.1),
+            shape: BoxShape.circle,
           ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(16),
-          onTap: () => Get.toNamed('/report/detail', arguments: report['id']),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: iconColor.withOpacity(0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(icon, color: iconColor),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '${report['category']['name']} - $roomName',
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black87),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: iconColor.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(
-                              status.toUpperCase(),
-                              style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: iconColor),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                const Icon(Icons.chevron_right, color: Colors.grey),
-              ],
-            ),
-          ),
+          child: Icon(icon, color: iconColor),
         ),
+        title: Text(
+          '${report['category']['name']} - $roomName',
+          style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF047857)),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        subtitle: Text('Status: $status'),
+        trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+        onTap: () => Get.toNamed('/report/detail', arguments: report['id']),
       ),
     );
   }

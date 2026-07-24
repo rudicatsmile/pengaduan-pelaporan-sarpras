@@ -7,6 +7,10 @@ and this project adheres to Semantic Versioning.
 
 ## [Unreleased]
 
+### Changed
+- [24 Juli 2026] [Antigravity] **Penyempurnaan UI Dashboard Mobile**: Melakukan penyempurnaan desain pada `home_view.dart` berdasarkan masukan iteratif: (1) Menambahkan teks Nama Aplikasi tepat di atas deretan tombol aksi sebagai penanda bagian; (2) Memperkecil dimensi *Action Cards* (Laporan Sarpras & Daftar Tugas) dengan mengurangi padding, ukuran *font*, serta ikon agar terlihat lebih proporsional dan ramping; (3) Menurunkan posisi *Floating Bottom Navigation Bar* (mengurangi margin bawah) agar menempel lebih dekat ke dasar layar.
+- [24 Juli 2026] [Antigravity] **Modernisasi UI/UX Dashboard Mobile**: Merombak tampilan utama `home_view.dart` menjadi jauh lebih modern, premium, dan dinamis. Pembaruan meliputi: implementasi *Floating Bottom Navigation Bar* dengan efek *glassmorphism* (blur); penerapan latar belakang putih bersih bergaya minimalis pada Header yang menyatu dengan *body* aplikasi; penerapan *soft shadow* dan *ripple effect* pada Action Cards (Laporan Sarpras & Daftar Tugas); pembaruan UI Statistics Grid dengan sudut yang lebih membulat dan proporsi warna yang elegan; pembaruan desain *list* Recent Activity; serta penambahan elemen visual modern berupa *drag handle* pada Bottom Sheets. Seluruh pembaruan UI dilakukan tanpa mengubah logika GetX Controller bawaan.
+
 ### Added
 - [24 Juli 2026] [Antigravity] Menambahkan **Favicon** (`logo.svg`) pada aplikasi Web Admin. Icon tab browser ini diekstrak dari komponen logo bawaan aplikasi (`ApplicationLogo.jsx`) dengan penambahan warna *fill* kustom merah, sehingga aplikasi kini tampil lebih profesional dengan *branding* visual pada tab *browser*.
 - [24 Juli 2026] [Antigravity] Menambahkan fitur **Zoom Foto Profil (Lightbox)** pada tabel daftar pengguna di halaman menu Kelola User. Admin kini dapat mengklik foto profil pengguna untuk melihatnya dalam ukuran penuh menggunakan galeri popup interaktif (`yet-another-react-lightbox`).
